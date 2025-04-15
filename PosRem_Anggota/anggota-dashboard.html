@@ -1,0 +1,174 @@
+<html lang="en">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>
+   PosRem Dashboard
+  </title>
+  <script src="https://cdn.tailwindcss.com">
+  </script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+ </head>
+
+ <body class="bg-gray-100 font-sans antialiased">
+  <div class="flex min-h-screen">
+   <!-- Sidebar -->
+   <div class="w-64 bg-white shadow-md">
+    <div class="flex items-center justify-center h-20 border-b">
+     <span class="ml-2 text-xl font-bold">
+      PosRem
+     </span>
+    </div>
+
+    <nav class="mt-10">
+     <a class="flex items-center px-6 py-2 text-gray-700 hover:bg-gray-200" href="#">
+      <span class="ml-3">
+       Dashboard
+      </span>
+     </a>
+     <a class="flex items-center px-6 py-2 mt-4 text-gray-700 hover:bg-gray-200" href="#">
+      <span class="ml-3">
+       Data Kesehatan
+      </span>
+     </a>
+     <a class="flex items-center px-6 py-2 mt-4 text-gray-700 hover:bg-gray-200" href="#">
+      <span class="ml-3">
+       Pesan Kesehatan
+      </span>
+     </a>
+     <a class="flex items-center px-6 py-2 mt-4 text-gray-700 hover:bg-gray-200" href="#">
+      <span class="ml-3">
+       Data Diri
+      </span>
+     </a>
+     <a class="flex items-center px-6 py-2 mt-4 text-gray-700 hover:bg-gray-200" href="#">
+      <span class="ml-3">
+       Keluar
+      </span>
+     </a>
+    </nav>
+   </div>
+
+
+   <!-- Main Content -->
+   <div class="flex-1 p-10">
+    <h1 class="text-3xl font-bold">
+     Halo, Micasa!
+    </h1>
+    <div class="mt-6 p-10 bg-gradient-to-r from-purple-400 to-purple-600 rounded-lg shadow-md text-white">
+     <h2 class="text-xl font-semibold">
+      Sudah cek kesehatan bulan ini?
+     </h2>
+     <p class="mt-2">
+      Jangan lupa laporan kesehatanmu ya!
+     </p>
+     <a class="btn btn-outline" href="#" role="button">Lapor</a>
+     <button type="button" class="btn btn-outline-secondary">Lapor</button>
+    </div>
+    
+    <div class="mt-6 bg-white rounded-lg shadow-md p-6">
+     <h2 class="text-lg font-semibold text-purple-600">
+      Riwayat Terbaru
+     </h2>
+     <!-- <div class="mt-4">
+      <div class="flex justify-between items-center border-b py-2">
+       <div>
+        <p class="font-semibold">
+         Kode 552
+        </p>
+        <p class="text-sm text-gray-600">
+         Senin, 17 Agustus 2024 18.39 WIB
+        </p>
+        <p class="text-sm text-gray-600">
+         Laporan riwayat berhasil
+        </p>
+        <p class="text-sm text-gray-600">
+         Pesan dokter: “Waah, ada peningkat ya. Tetap jaga pola~”
+        </p>
+       </div>
+       <button class="px-4 py-2 bg-purple-300 text-purple-800 rounded">
+        Pesan
+       </button>
+      </div>
+      <div class="flex justify-between items-center border-b py-2">
+       <div>
+        <p class="font-semibold">
+         Kode 490
+        </p>
+        <p class="text-sm text-gray-600">
+         Senin, 17 Agustus 2024 18.39 WIB
+        </p>
+        <p class="text-sm text-gray-600">
+         Laporan riwayat berhasil
+        </p>
+        <p class="text-sm text-gray-600">
+         Pesan dokter: “Sudah lumayan mbak, coba mulai konsu~”
+        </p>
+       </div>
+       <button class="px-4 py-2 bg-purple-300 text-purple-800 rounded">
+        Pesan
+       </button>
+      </div>
+      <div class="flex justify-between items-center border-b py-2">
+       <div>
+        <p class="font-semibold">
+         Kode 430
+        </p>
+        <p class="text-sm text-gray-600">
+         Senin, 17 Agustus 2024 18.39 WIB
+        </p>
+        <p class="text-sm text-gray-600">
+         Laporan riwayat berhasil
+        </p>
+        <p class="text-sm text-gray-600">
+         Pesan dokter: “Sedang stres ya? Jangan begadang ya mba~”
+        </p>
+       </div>
+       <button class="px-4 py-2 bg-purple-300 text-purple-800 rounded">
+        Pesan
+       </button>
+      </div>
+      <div class="flex justify-between items-center border-b py-2">
+       <div>
+        <p class="font-semibold">
+         Kode 396
+        </p>
+        <p class="text-sm text-gray-600">
+         Senin, 17 Agustus 2024 18.39 WIB
+        </p>
+        <p class="text-sm text-gray-600">
+         Laporan riwayat berhasil
+        </p>
+        <p class="text-sm text-gray-600">
+         Pesan dokter: “Minum manisnya dikurangi ya mbak. Coba~”
+        </p>
+       </div>
+       <button class="px-4 py-2 bg-purple-300 text-purple-800 rounded">
+        Pesan
+       </button>
+      </div>
+      <div class="flex justify-between items-center py-2">
+       <div>
+        <p class="font-semibold">
+         Kode 295
+        </p>
+        <p class="text-sm text-gray-600">
+         Senin, 17 Agustus 2024 18.39 WIB
+        </p>
+        <p class="text-sm text-gray-600">
+         Laporan riwayat berhasil
+        </p>
+        <p class="text-sm text-gray-600">
+         Pesan dokter: “Tetap sehat. Jaga pola tidur!”
+        </p>
+       </div>
+       <button class="px-4 py-2 bg-purple-300 text-purple-800 rounded">
+        Pesan
+       </button>
+      </div>
+     </div> -->
+    </div>
+   </div>
+  </div>
+ </body>
+</html>
