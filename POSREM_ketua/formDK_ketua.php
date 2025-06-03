@@ -19,6 +19,7 @@
       transition: all 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
       color: black;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      overflow-y: auto;
     }
 
     .sidebar.expanded {
@@ -139,29 +140,11 @@
       padding: 2rem;
       margin-left: 5px;
       flex-grow: 1;
+      min-height: 100vh;
     }
 
     .content.collapsed {
       margin-left: 5px;
-    }
-
-    .card {
-      width: 100%;
-      max-width: 100%;
-      height: 100%;
-    }
-
-    .kt-card {
-      background-color: #8A70D6;
-      border-radius: 15px;
-      padding: 2.5rem;
-      padding-top: 2.5rem;
-      color: white;
-      margin-bottom: 2rem;
-      min-height: 100px;
-      max-width: 95%;
-      margin: 0 auto;
-      width: 100%;
     }
 
     .btn-view {
@@ -178,10 +161,30 @@
       background-color: rgba(255, 255, 255, 0.5);
     }
 
-    h2 {
-      font-size: 1.5rem;
-      margin-top: 1.5rem;
-      margin-left: 1.5rem;
+    .card {
+      width: 100%;
+      max-width: 100%;
+      height: 100%;
+    }
+
+    .info-card {
+      max-width: 1200px;
+      padding: 2rem;
+      width: 100%;
+      margin: auto;
+    }
+
+    .info-card .card {
+      padding: 2rem;
+    }
+
+    form input.form-control {
+      width: 100%;
+    }
+
+    .info-card .row>div {
+      font-size: 1rem;
+      color: #000;
     }
   </style>
 </head>
@@ -205,13 +208,13 @@
           </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="KT_ketua.php" class="nav-link active">
+          <a href="KT_ketua.php" class="nav-link">
             <img src="asset/logo_KT.png" alt="" width="30px">
             <span class="sidebar-text">Karang Taruna</span>
           </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="#" class="nav-link">
+          <a href="#" class="nav-link active">
             <img src="asset/logo_data kesehatan.png" alt="" width="30px">
             <span class="sidebar-text">Data Kesehatan</span>
           </a>
@@ -247,31 +250,90 @@
     <div id="main-content" class="content">
       <div class="card">
         <div class="card-body">
-          <h2>Halo, Levi!</h2> <br>
+          <div class="container">
+            <div class="row justify-content-center">
+              <div class="col-12">
+                <div class="info-card">
+                  <div class="card p-3">
+                    <div class="row">
+                      <h5><strong>Informasi Diri</strong></h5>
+                      <!-- Kolom 1: Label -->
+                      <div class="col-6">
+                        <p>Nama Lengkap</p>
+                        <p>Jenis Kelamin</p>
+                        <p>Umur</p>
+                        <p>Nomor Telp</p>
+                      </div>
 
-          <div class="kt-card">
-            <h3>Karang Taruna Desa Demen</h3>
-            <p>Batikan II, Demen, Temon, Kulon Progo</p>
+                      <!-- Kolom 2: Nilai -->
+                      <div class="col-6">
+                        <p>Levi</p>
+                        <p>Perempuan</p>
+                        <p>18</p>
+                        <p>0987654321</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Form Input Data Kesehatan -->
+                  <br>
+                  <form>
+                    <div class="row mb-3">
+                      <div class="col-md-6">
+                        <label for="tinggi" class="form-label">Tinggi Badan</label>
+                        <input type="text" class="form-control" id="tinggi" placeholder="">
+                      </div>
+                      <div class="col-md-6">
+                        <label for="berat" class="form-label">Berat Badan</label>
+                        <input type="text" class="form-control" id="berat" placeholder="">
+                      </div>
+                    </div>
+                    <div class="row mb-3">
+                      <div class="col-md-6">
+                        <label for="lingkarKepala" class="form-label">Lingkar Kepala</label>
+                        <input type="text" class="form-control" id="lingkarKepala" placeholder="">
+                      </div>
+                      <div class="col-md-6">
+                        <label for="lingkarLengan" class="form-label">Lingkar Lengan</label>
+                        <input type="text" class="form-control" id="lingkarLengan" placeholder="">
+                      </div>
+                    </div>
+                    <div class="row mb-3">
+                      <div class="col-md-6">
+                        <label for="lingkarPerut" class="form-label">Lingkar Perut</label>
+                        <input type="text" class="form-control" id="lingkarPerut" placeholder="">
+                      </div>
+                      <div class="col-md-6">
+                        <label for="tekananDarah" class="form-label">Tekanan Darah</label>
+                        <input type="text" class="form-control" id="tekananDarah" placeholder="">
+                      </div>
+                    </div>
+                    <div class="mb-3">
+                      <label for="konsultasi" class="form-label">Konsultasi Lainnya</label>
+                      <input type="text" class="form-control" id="konsultasi" placeholder="">
+                    </div>
+                    <div class="text-end">
+                      <button type="submit" class="btn btn-view">Simpan</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
           </div>
-
-          <button class="btn-view">Lihat Data</button>
-
         </div>
       </div>
-
     </div>
-  </div>
 
-  <script>
-    const sidebar = document.getElementById("sidebar");
-    const content = document.getElementById("main-content");
+    <script>
+      const sidebar = document.getElementById("sidebar");
+      const content = document.getElementById("main-content");
 
-    function toggleSidebar() {
-      sidebar.classList.toggle("collapsed");
-      sidebar.classList.toggle("expanded");
-      content.classList.toggle("collapsed");
-    }
-  </script>
+      function toggleSidebar() {
+        sidebar.classList.toggle("collapsed");
+        sidebar.classList.toggle("expanded");
+        content.classList.toggle("collapsed");
+      }
+    </script>
 
 </body>
 

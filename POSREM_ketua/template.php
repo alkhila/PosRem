@@ -19,6 +19,7 @@
       transition: all 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
       color: black;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      overflow-y: auto;
     }
 
     .sidebar.expanded {
@@ -139,6 +140,7 @@
       padding: 2rem;
       margin-left: 5px;
       flex-grow: 1;
+      min-height: 100vh;
     }
 
     .content.collapsed {

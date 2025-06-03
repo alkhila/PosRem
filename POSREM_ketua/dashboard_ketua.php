@@ -19,6 +19,7 @@
       transition: all 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
       color: black;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      overflow-y: auto;
     }
 
     .sidebar.expanded {
@@ -139,6 +140,7 @@
       padding: 2rem;
       margin-left: 5px;
       flex-grow: 1;
+      min-height: 100vh;
     }
 
     .content.collapsed {
@@ -277,7 +279,7 @@
         <li class="nav-item mb-2">
           <a href="dashboard_ketua.php" class="nav-link active">
             <img src="asset/logo_dasboard.png" alt="" width="30px">
-            <span class="sidebar-text">ketua</span>
+            <span class="sidebar-text">Dashboard</span>
           </a>
         </li>
         <li class="nav-item mb-2">
@@ -287,7 +289,7 @@
           </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="#" class="nav-link">
+          <a href="formDK_ketua.php" class="nav-link">
             <img src="asset/logo_data kesehatan.png" alt="" width="30px">
             <span class="sidebar-text">Data Kesehatan</span>
           </a>
