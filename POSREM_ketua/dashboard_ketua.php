@@ -277,7 +277,7 @@
         <li class="nav-item mb-2">
           <a href="dashboard_ketua.php" class="nav-link active">
             <img src="asset/logo_dasboard.png" alt="" width="30px">
-            <span class="sidebar-text">Dashboard</span>
+            <span class="sidebar-text">ketua</span>
           </a>
         </li>
         <li class="nav-item mb-2">
