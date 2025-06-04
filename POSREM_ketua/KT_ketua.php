@@ -219,19 +219,19 @@
           </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="#" class="nav-link">
+          <a href="pesanKesehatan.php" class="nav-link">
             <img src="asset/logo_pesan kesehatan.png" alt="" width="30px">
             <span class="sidebar-text">Pesan Kesehatan</span>
           </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="#" class="nav-link">
+          <a href="dataDiri.php" class="nav-link">
             <img src="asset/logo_data diri.png" alt="" width="30px">
             <span class="sidebar-text">Data Diri</span>
           </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="#" class="nav-link">
+          <a href="cetakLaporan.php" class="nav-link">
             <img src="asset/logo_cetak laporan.png" alt="" width="30px">
             <span class="sidebar-text">Cetak Laporan</span>
           </a>

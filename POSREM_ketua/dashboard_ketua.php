@@ -295,19 +295,19 @@
           </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="#" class="nav-link">
+          <a href="pesanKesehatan.php" class="nav-link">
             <img src="asset/logo_pesan kesehatan.png" alt="" width="30px">
             <span class="sidebar-text">Pesan Kesehatan</span>
           </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="#" class="nav-link">
+          <a href="dataDiri.php" class="nav-link">
             <img src="asset/logo_data diri.png" alt="" width="30px">
             <span class="sidebar-text">Data Diri</span>
           </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="#" class="nav-link">
+          <a href="cetakLaporan.php" class="nav-link">
             <img src="asset/logo_cetak laporan.png" alt="" width="30px">
             <span class="sidebar-text">Cetak Laporan</span>
           </a>
@@ -331,7 +331,7 @@
           <div class="kt-card">
             <h3>Sudah cek kesehatan bulan ini?</h3>
             <p>Jangan lupa laporan kesehatanmu ya!</p>
-            <button class="btn-view">Lihat Data</button>
+            <button class="btn-view">Lapor</button>
           </div>
 
           <div class="container mt-4">
@@ -348,18 +348,26 @@
                   <tr>
                     <td class="left-info" style="width: 20%;">
                       <span class="kode">Kode 1</span><br>
-                      17 Agustus 2025
+                      17 Agustus 2025 <br> 18.39 WIB
                     </td>
-                    <td class="middle-info" style="width: 65%;"><br>Mark</td>
-                    <td class="right-info" style="width: 25%;"><br><button class="btn-view">Pesan</button></td>
+                    <td class="middle-info" style="width: 65%;">
+                      <br>Mark
+                      <br>Pesan : “Waah, ada peningkatan ya. Tetap jaga pola makan, jangan lupa makan sayur-sayuran
+                      hijau.”
+                    </td>
+                    <td class="right-info" style="width: 25%;"><br><button class="btn-view">Data Kesehatan</button></td>
                   </tr>
                   <tr>
                     <td class="left-info" style="width: 20%;">
                       <span class="kode">Kode 1</span><br>
-                      17 Agustus 2025
+                      17 Agustus 2025 <br> 18.39 WIB
                     </td>
-                    <td class="middle-info" style="width: 65%;"><br>Mark</td>
-                    <td class="right-info" style="width: 25%;"><br><button class="btn-view">Pesan</button></td>
+                    <td class="middle-info" style="width: 65%;">
+                      <br>Mark
+                      <br>Pesan : “Waah, ada peningkatan ya. Tetap jaga pola makan, jangan lupa makan sayur-sayuran
+                      hijau.”
+                    </td>
+                    <td class="right-info" style="width: 25%;"><br><button class="btn-view">Data Kesehatan</button></td>
                   </tr>
                 </tbody>
               </table>

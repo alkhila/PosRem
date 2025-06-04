@@ -158,7 +158,7 @@
     }
 
     .btn-view:hover {
-      background-color: rgba(255, 255, 255, 0.5);
+      background-color: rgba(161, 75, 218, 0.64);
     }
 
     .card {
@@ -176,10 +176,12 @@
 
     .info-card .card {
       padding: 2rem;
+      border-radius: 15px;
     }
 
     form input.form-control {
       width: 100%;
+      border-radius: 15px;
     }
 
     .info-card .row>div {
@@ -220,19 +222,19 @@
           </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="#" class="nav-link">
+          <a href="pesanKesehatan.php" class="nav-link">
             <img src="asset/logo_pesan kesehatan.png" alt="" width="30px">
             <span class="sidebar-text">Pesan Kesehatan</span>
           </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="#" class="nav-link">
+          <a href="dataDiri.php" class="nav-link">
             <img src="asset/logo_data diri.png" alt="" width="30px">
             <span class="sidebar-text">Data Diri</span>
           </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="#" class="nav-link">
+          <a href="cetakLaporan.php" class="nav-link">
             <img src="asset/logo_cetak laporan.png" alt="" width="30px">
             <span class="sidebar-text">Cetak Laporan</span>
           </a>
@@ -257,7 +259,6 @@
                   <div class="card p-3">
                     <div class="row">
                       <h5><strong>Informasi Diri</strong></h5>
-                      <!-- Kolom 1: Label -->
                       <div class="col-6">
                         <p>Nama Lengkap</p>
                         <p>Jenis Kelamin</p>
@@ -265,7 +266,6 @@
                         <p>Nomor Telp</p>
                       </div>
 
-                      <!-- Kolom 2: Nilai -->
                       <div class="col-6">
                         <p>Levi</p>
                         <p>Perempuan</p>
@@ -275,9 +275,8 @@
                     </div>
                   </div>
 
-                  <!-- Form Input Data Kesehatan -->
                   <br>
-                  <form>
+                  <form action="dataKesehatan.php">
                     <div class="row mb-3">
                       <div class="col-md-6">
                         <label for="tinggi" class="form-label">Tinggi Badan</label>
@@ -313,7 +312,7 @@
                       <input type="text" class="form-control" id="konsultasi" placeholder="">
                     </div>
                     <div class="text-end">
-                      <button type="submit" class="btn btn-view">Simpan</button>
+                      <button class="btn-view" type="submit">Simpan</button>
                     </div>
                   </form>
                 </div>
