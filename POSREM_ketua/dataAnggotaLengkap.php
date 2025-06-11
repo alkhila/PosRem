@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>Cetak Laporan</title>
+  <title>Form Data Kesehatan</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
@@ -147,18 +147,12 @@
       margin-left: 5px;
     }
 
-    .card {
-      width: 100%;
-      max-width: 100%;
-      height: 100%;
-    }
-
     .btn-view {
       background-color: rgba(178, 124, 223, 1);
       color: white;
       border: none;
       border-radius: 50px;
-      padding: 0.5rem 1rem;
+      padding: 0.5rem 1.5rem;
       font-size: 1rem;
       transition: all 0.3s ease;
     }
@@ -167,27 +161,34 @@
       background-color: rgba(161, 75, 218, 0.64);
     }
 
-    .button-container {
-      display: flex;
-      justify-content: flex-end;
-      margin-top: 2rem;
-      margin-right: 1rem;
-    }
-
-    .wrapper-table {
-      border: 2px solid #8A70D6;
-      padding: 2rem;
-      padding-top: 2rem;
-      margin-bottom: 2rem;
-      min-height: 100px;
-      max-width: 97.5%;
-      margin: 0 auto;
+    .card {
       width: 100%;
-      border-radius: 20px;
-      overflow: hidden;
+      max-width: 100%;
+      height: 100%;
     }
-  </style>
 
+    .info-card {
+      max-width: 1200px;
+      width: 100%;
+      margin: auto;
+      margin-bottom: 20px;
+      margin-top: 10px;
+    }
+
+    .info-card .card {
+      padding: 2rem;
+      border-radius: 15px;
+    }
+
+    form input.form-control {
+      width: 100%;
+      border-radius: 15px;
+    }
+
+    .info-card .row>div {
+      font-size: 1rem;
+      color: #000;
+    }
   </style>
 </head>
 
@@ -216,7 +217,7 @@
           </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="formDK_ketua.php" class="nav-link">
+          <a href="#" class="nav-link active">
             <img src="asset/logo_data kesehatan.png" alt="" width="30px">
             <span class="sidebar-text">Data Kesehatan</span>
           </a>
@@ -234,7 +235,7 @@
           </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="cetakLaporan.php" class="nav-link active">
+          <a href="cetakLaporan.php" class="nav-link">
             <img src="asset/logo_cetak laporan.png" alt="" width="30px">
             <span class="sidebar-text">Cetak Laporan</span>
           </a>
@@ -250,34 +251,58 @@
 
     <!-- Konten utama -->
     <div id="main-content" class="content">
-
       <div class="card">
         <div class="card-body">
+          <div class="container">
+            <div class="row justify-content-center">
+              <div class="col-12">
+                <div class="info-card">
+                  <div class="card p-3">
+                    <div class="row">
+                      <h5><strong>Informasi Diri</strong></h5>
+                      <div class="col-6">
+                        <p>Nama Lengkap</p>
+                        <p>Jenis Kelamin</p>
+                        <p>Umur</p>
+                        <p>Nomor Telp</p>
+                      </div>
 
-          <div class="container mt-4">
-            <div class="wrapper-table">
-              <h3><strong>Data Diri</strong></h3>
-              <br>
-              <form action="#">
-                <div class="row mb-3">
-                  <div class="col-md-6">
-                    <label for="tinggi" class="form-label">Karang Taruna</label>
-                    <input type="text" class="form-control" id="tinggi" placeholder="Pilih">
-                  </div>
-                  <div class="col-md-6">
-                    <label for="berat" class="form-label">Bulan</label>
-                    <input type="text" class="form-control" id="berat" placeholder="Pilih">
+                      <div class="col-6">
+                        <p>Levi</p>
+                        <p>Perempuan</p>
+                        <p>18</p>
+                        <p>0987654321</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <br><br><br><br><br><br><br>
-                <div class="text-end">
-                  <button class="btn-view" type="submit">Cetak</button>
+                <div class="info-card">
+                  <div class="card p-3">
+                    <div class="row">
+                      <h5><strong>Informasi Akun</strong></h5>
+                      <div class="col-6">
+                        <p>Username</p>
+                        <p>Password</p>
+                      </div>
+
+                      <div class="col-6">
+                        <p>ackermanlev8</p>
+                        <p>levackerman*</p>
+                      </div>
+                    </div>
+                  </div>
+                  <br>
                 </div>
-              </form>
+                <div class="info-card" style="margin-top">
+                  <div class="d-flex justify-content-start">
+                    <a href="dataAnggotaKT_ketua.php"><button class="btn-view"
+                        style="margin-top: 180px;">Kembali</button></a>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-
       </div>
     </div>
 
@@ -291,6 +316,7 @@
         content.classList.toggle("collapsed");
       }
     </script>
+
 </body>
 
 </html>

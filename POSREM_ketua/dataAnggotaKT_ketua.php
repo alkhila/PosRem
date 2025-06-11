@@ -312,15 +312,17 @@
                     <td style="width: 20%;">L</td>
                     <td style="width: 20%;">18</td>
                     <td style="width: 22%;">0895403587100</td>
-                    <td style="width: 7%;"><a href=""><img src="asset/logo_akun.png" alt=""></a></td>
+                    <td style="width: 7%;"><a href="dataAnggotaLengkap.php"><img src="asset/logo_akun.png" alt=""></a>
+                    </td>
                     <td style="width: 6%;"><a href=""><img src="asset/logo_delete.png" alt=""></a></td>
-                    <td style="width: 5%;"><a href=""><img src="asset/logo_edit.png" alt=""></a></td>
+                    <td style="width: 5%;"><a href="tambahDataAnggota.php"><img src="asset/logo_edit.png" alt=""></a>
+                    </td>
                   </tr>
                 </tbody>
               </table>
             </div>
             <div class="button-container">
-              <button class="btn-view">Tambah</button>
+              <a href="tambahDataAnggota.php"><button class="btn-view">Tambah</button></a>
             </div>
           </div>
 
