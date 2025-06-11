@@ -1,3 +1,50 @@
+<?php
+// Koneksi ke database
+$host = "localhost";
+$user = "root";
+$pass = "";
+$db = "posrem";
+
+$conn = new mysqli($host, $user, $pass, $db);
+
+// Cek koneksi
+if ($conn->connect_error) {
+  die("Koneksi gagal: " . $conn->connect_error);
+}
+
+session_start();
+$loginError = "";
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+  $username = $_POST["username"];
+  $password = $_POST["password"];
+
+  // Cek apakah username ada
+  $stmt = $conn->prepare("SELECT * FROM anggota WHERE usn_anggota = ?");
+  $stmt->bind_param("s", $username);
+  $stmt->execute();
+  $result = $stmt->get_result();
+
+  if ($result->num_rows === 1) {
+    $user = $result->fetch_assoc();
+    if (password_verify($password, $user['pass_anggota'])) {
+      // Login berhasil
+      $_SESSION["username"] = $username;
+      echo "<script>alert('Login berhasil'); window.location.href='beranda.php';</script>";
+      exit;
+    } else {
+      $loginError = "Password salah.";
+    }
+  } else {
+    $loginError = "Username tidak ditemukan.";
+  }
+
+  $stmt->close();
+}
+
+$conn->close();
+?>
+
 <!DOCTYPE html>
 <html lang="id">
 
@@ -6,6 +53,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login</title>
   <style>
+    /* CSS tetap sama */
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
@@ -66,6 +114,12 @@
       font-size: 16px;
     }
 
+    input:focus {
+      border-color: #3b82f6;
+      outline: none;
+      box-shadow: 0 0 0 5px rgba(59, 130, 246, 0.3);
+    }
+
     .form-footer {
       font-size: 14px;
       margin-bottom: 20px;
@@ -109,6 +163,12 @@
       width: 100%;
       max-width: 400px;
     }
+
+    .error-message {
+      color: red;
+      text-align: center;
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 
@@ -119,22 +179,24 @@
         <img src="asset/logo_posrem.png">
         PosRem
       </h1>
-      <form action="#">
-        <br>
+      <br><br>
+      <form method="POST" action="dashboard_ketua.php">
+        <?php if ($loginError): ?>
+          <div class="error-message"><?php echo $loginError; ?></div>
+        <?php endif; ?>
         <div class="form-group">
           <label for="username">Username</label>
-          <input type="text" id="username" placeholder="exampleruby_">
+          <input type="text" id="username" name="username" placeholder="exampleruby_" required>
         </div>
         <div class="form-group">
           <label for="password">Password</label>
-          <input type="password" id="password" placeholder="rubyexample123">
+          <input type="password" id="password" name="password" placeholder="rubyexample123" required>
         </div>
-        <br>
+        <br><br>
         <div class="form-footer">
           Belum punya akun? <a href="registrasi.php">Daftar</a>
         </div>
-        <button class="btn">Log In</button>
-        <button class="btn">Ketua</button>
+        <button class="btn" type="submit">Log In</button>
       </form>
     </div>
     <div class="image-section">

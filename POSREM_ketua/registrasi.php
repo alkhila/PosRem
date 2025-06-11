@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login</title>
+  <title>Registrasi</title>
   <style>
     body {
       margin: 0;
@@ -66,6 +66,12 @@
       font-size: 16px;
     }
 
+    input:focus {
+      border-color: #3b82f6;
+      outline: none;
+      box-shadow: 0 0 0 5px rgba(59, 130, 246, 0.3);
+    }
+
     .form-footer {
       font-size: 14px;
       margin-bottom: 20px;
@@ -116,22 +122,22 @@
   <div class="container">
     <div class="form-section">
       <h1>
-        <img src="asset/logo_posrem.png">
+        <img src="asset/logo_posrem.png" alt="Logo PosRem">
         PosRem
       </h1>
-      <form action="dataRegistrasi.php">
+      <form action="dataRegistrasi.php" method="POST">
         <br>
         <div class="form-group">
           <label for="username">Username</label>
-          <input type="text" id="username" placeholder="exampleruby_">
+          <input type="text" id="username" name="username" placeholder="exampleruby_" required>
         </div>
         <div class="form-group">
           <label for="password">Password</label>
-          <input type="password" id="password" placeholder="rubyexample123">
+          <input type="password" id="password" name="password" placeholder="rubyexample123" required>
         </div>
         <div class="form-group">
-          <label for="password">Konfirmasi Password</label>
-          <input type="password" id="repassword" placeholder="rubyexample123">
+          <label for="repassword">Konfirmasi Password</label>
+          <input type="password" id="repassword" name="repassword" placeholder="rubyexample123" required>
         </div>
         <br>
         <div class="form-footer">
@@ -141,7 +147,7 @@
       </form>
     </div>
     <div class="image-section">
-      <img src="asset/logo_gradasi.png">
+      <img src="asset/logo_gradasi.png" alt="Logo Gradasi">
     </div>
   </div>
 </body>

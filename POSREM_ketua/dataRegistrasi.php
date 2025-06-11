@@ -1,3 +1,61 @@
+<?php
+// Koneksi ke database
+$host = "localhost";
+$user = "root";
+$pass = ""; // Sesuaikan jika pakai password
+$db = "posrem";
+
+$conn = mysqli_connect($host, $user, $pass, $db);
+if (!$conn) {
+  die("Koneksi gagal: " . mysqli_connect_error());
+}
+
+// Cek jika data dari halaman sebelumnya belum dikirim, redirect ke registrasi.php
+if (!isset($_POST['username']) || !isset($_POST['password']) || !isset($_POST['repassword'])) {
+  header("Location: registrasi.php");
+  exit;
+}
+
+// Ambil data dari halaman sebelumnya
+$username = $_POST['username'];
+$password = $_POST['password'];
+$repassword = $_POST['repassword'];
+
+// Cek konfirmasi password
+if ($password !== $repassword) {
+  echo "<script>alert('Password dan konfirmasi tidak sama!'); window.location.href='registrasi.php';</script>";
+  exit;
+}
+
+// Enkripsi password
+$hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+
+// Jika form disubmit dari halaman ini
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['namalengkap'])) {
+  $nama = $_POST['namalengkap'];
+  $umur = $_POST['umur'];
+  $jenis_kelamin = $_POST['jeniskelamin'];
+  $no_hp = $_POST['notelp'];
+  $namaKT = $_POST['namaKT'];
+  $alamatKT = $_POST['alamatKT'];
+
+  // Simpan ke database
+  $sql = "INSERT INTO anggota (nama_anggota, jenis_kelamin_anggota, umur_anggota, no_hp_anggota, usn_anggota, pass_anggota)
+            VALUES (?, ?, ?, ?, ?, ?)";
+  $stmt = mysqli_prepare($conn, $sql);
+  mysqli_stmt_bind_param($stmt, "ssisss", $nama, $jenis_kelamin, $umur, $no_hp, $username, $hashedPassword);
+
+  if (mysqli_stmt_execute($stmt)) {
+    echo "<script>alert('Registrasi berhasil!'); window.location.href='login.php';</script>";
+  } else {
+    echo "<script>alert('Terjadi kesalahan: " . mysqli_error($conn) . "');</script>";
+  }
+
+  mysqli_stmt_close($stmt);
+  mysqli_close($conn);
+}
+?>
+
 <!DOCTYPE html>
 <html lang="id">
 
@@ -6,6 +64,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Data Registrasi</title>
   <style>
+    /* Sama seperti sebelumnya */
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
@@ -46,7 +105,6 @@
     label {
       font-size: 18px;
       margin-bottom: 6px;
-      font-weight: normal;
     }
 
     input[type="text"] {
@@ -90,7 +148,6 @@
       border: none;
       border-radius: 12px;
       cursor: pointer;
-      transition: background 0.3s ease;
     }
 
     .btn:hover {
@@ -101,47 +158,49 @@
 
 <body>
   <div class="container">
-    <form action="#">
+    <form method="POST">
+      <input type="hidden" name="username" value="<?= htmlspecialchars($username) ?>">
+      <input type="hidden" name="password" value="<?= htmlspecialchars($password) ?>">
+      <input type="hidden" name="repassword" value="<?= htmlspecialchars($repassword) ?>">
+
       <h1>Identitas Diri</h1>
       <div class="form-row">
         <div class="form-group">
           <label for="namalengkap">Nama Lengkap</label>
-          <input type="text" id="namalengkap" placeholder="exampleruby" />
+          <input type="text" id="namalengkap" name="namalengkap" required />
         </div>
         <div class="form-group">
           <label for="umur">Umur</label>
-          <input type="text" id="umur" placeholder="019" />
+          <input type="text" id="umur" name="umur" required />
         </div>
       </div>
 
       <div class="form-row">
         <div class="form-group">
           <label for="jeniskelamin">Jenis Kelamin</label>
-          <input type="text" id="jeniskelamin" placeholder="exampleperempuan" />
+          <input type="text" id="jeniskelamin" name="jeniskelamin" required />
         </div>
         <div class="form-group">
           <label for="notelp">No Telepon</label>
-          <input type="text" id="notelp" placeholder="08xxx" />
+          <input type="text" id="notelp" name="notelp" required />
         </div>
       </div>
 
       <h1>Identitas Karang Taruna</h1>
       <div class="form-group">
         <label for="namaKT">Nama Karang Taruna</label>
-        <input type="text" id="namaKT" />
+        <input type="text" id="namaKT" name="namaKT" />
       </div>
 
       <div class="form-group" style="margin-top: 20px;">
         <label for="alamatKT">Alamat Karang Taruna</label>
-        <input type="text" id="alamatKT" />
+        <input type="text" id="alamatKT" name="alamatKT" />
       </div>
 
       <div class="form-footer">
-        <input type="checkbox" id="konfirmasi" />
-        <label for="konfirmasi">
-          Dengan ini saya menyatakan bahwa saya benar-benar ketua karang taruna dan semua data yang diberikan adalah
-          benar
-        </label>
+        <input type="checkbox" id="konfirmasi" required />
+        <label for="konfirmasi">Dengan ini saya menyatakan bahwa saya benar-benar ketua karang taruna dan semua data
+          yang diberikan adalah benar</label>
       </div>
 
       <div class="button-container">
