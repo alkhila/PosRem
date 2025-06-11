@@ -55,8 +55,7 @@
       font-size: 1rem;
     }
     .main-content {
-    padding: 2rem;
-    overflow-x: hidden;
+      padding: 2rem;
     }
     .card {
     border: none;
@@ -115,13 +114,13 @@
       </div>
       <ul class="nav flex-column">
         <li class="nav-item">
-          <a href="#" class="nav-link active"><i class="bi bi-grid-fill"></i> <span>Dashboard</span></a>
+          <a href="#" class="nav-link"><i class="bi bi-grid-fill"></i> <span>Dashboard</span></a>
         </li>
         <li class="nav-item">
           <a href="#" class="nav-link"><i class="bi bi-clipboard-heart"></i> <span>Data Kesehatan</span></a>
         </li>
         <li class="nav-item">
-          <a href="#" class="nav-link"><i class="bi bi-chat-dots"></i> <span>Pesan Kesehatan</span></a>
+          <a href="#" class="nav-link active"><i class="bi bi-chat-dots"></i> <span>Pesan Kesehatan</span></a>
         </li>
         <li class="nav-item">
           <a href="#" class="nav-link"><i class="bi bi-person-circle"></i> <span>Data Diri</span></a>
@@ -133,75 +132,59 @@
     </div>
 
    <!-- Main Content -->
-        <div class="main-content flex-grow-1">
-        <div class="card p-5 rounded-4 shadow-sm" style="background-color: white;">    
-            <div class="history-box mt-4">
-            <h6 class="mb-3" style="color: #624FA2;">Informasi Diri</h6>
-            
-            <table class="table">
-            <tbody>
-                <tr>
-                <td>Nama Lengkap</td>
-                <td>Micasa Ackerman</td>
-                </tr>
-                <tr>
-                <td>Jenis Kelamin</td>
-                <td>Perempuan</td>
-                </tr>
-                <tr>
-                <td>Umur</td>
-                <td>19</td>
-                </tr>
-                <tr>
-                <td>Nomor Telepon</td>
-                <td>081111111111111111</td>
-                </tr>
-            </tbody>
-            </table>
-        </div>
-
-        <!-- History Section -->
+    <div class="main-content flex-grow-1">
+        <div class="card p-5 rounded-4 shadow-sm" style="background-color: white;">
+  
+        <!-- Lihat Pesan -->
         <div class="history-box mt-4">
-            <h6 class="mb-3" style="color: #624FA2;">Data Kesehatan</h6>
-            
-            <table class="table">
-            <tbody>
-                <tr>
-                <td>Tinggi Badan</td>
-                <td>160</td>
-                </tr>
-                <tr>
-                <td>Berat Badan</td>
-                <td>50</td>
-                </tr>
-                <tr>
-                <td>Lingkar Kepala</td>
-                <td>47</td>
-                </tr>
-                <tr>
-                <td>Lingkar Lengan</td>
-                <td>24</td>
-                </tr><tr>
-                <td>Lingkar Perut</td>
-                <td>72</td>
-                </tr><tr>
-                <td>Tekanan Darah</td>
-                <td>100/70</td>
-                </tr><tr>
-                <td>Konsultasi Lainnya</td>
-                <td>Tidak ada</td>
-                </tr>
-            </tbody>
-            </table>
-        </div>
-
-        <div class="text-start">
-                <a href="#" class="btn btn-submit px-4">Kembali</a>
+            <h6 class="mb-3" style="color: #624FA2;">Pesan Terbaru</h6>
+    
+            <div class="history-item">
+                <div class="row">
+                    <div class="col-10">
+                        <div class="history-code">Kode 295</div>
+                        <small>Senin, 17 Agustus 2024 | 18.39 WIB</small>
+                        <p>Pesan dokter: “Lorem ipsum”</p>
+                    </div>
+                    <div class="col-2"><button class="btn-pesan">Lihat Pesan</button></div>
                 </div>
+            </div>
 
+            <div class="history-item">
+                <div class="row">
+                    <div class="col-10">
+                        <div class="history-code">Kode 295</div>
+                        <small>Senin, 17 Agustus 2024 | 18.39 WIB</small>
+                        <p>Pesan dokter: “Lorem ipsum”</p>
+                    </div>
+                    <div class="col-2"><button class="btn-pesan">Lihat Pesan</button></div>
+                </div>
+            </div>
+
+            <div class="history-item">
+                <div class="row">
+                    <div class="col-10">
+                        <div class="history-code">Kode 295</div>
+                        <small>Senin, 17 Agustus 2024 | 18.39 WIB</small>
+                        <p>Pesan dokter: “Lorem ipsum”</p>
+                    </div>
+                    <div class="col-2"><button class="btn-pesan">Lihat Pesan</button></div>
+                </div>
+            </div>
+    
+            <div class="history-item">
+                <div class="row">
+                    <div class="col-10">
+                        <div class="history-code">Kode 295</div>
+                        <small>Senin, 17 Agustus 2024 | 18.39 WIB</small>
+                        <p>Pesan dokter: “Lorem ipsum”</p>
+                    </div>
+                    <div class="col-2"><button class="btn-pesan">Lihat Pesan</button></div>
+                </div>
+            </div>
+        </div>
         </div>
     </div>
-    
   
 
   <!-- Bootstrap Icons -->
