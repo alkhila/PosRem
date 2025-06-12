@@ -194,7 +194,7 @@ $conn->close();
         </div>
         <br><br>
         <div class="form-footer">
-          Belum punya akun? <a href="registrasi.php">Daftar</a>
+          Belum punya akun? <a href="posrem_registration/register_ketua.php">Daftar</a>
         </div>
         <button class="btn" type="submit">Log In</button>
       </form>

@@ -1,19 +1,21 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registrasi Ketua Karang Taruna</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f7f6;
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(to bottom, #fddde6, #cce7f5);
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             margin: 0;
         }
+
         .container {
             background-color: #fff;
             padding: 30px;
@@ -22,19 +24,23 @@
             width: 100%;
             max-width: 600px;
         }
+
         h2 {
             text-align: center;
             color: #333;
             margin-bottom: 25px;
         }
+
         .form-group {
             margin-bottom: 15px;
         }
+
         label {
             display: block;
             margin-bottom: 5px;
-            color: #555;
+            font-weight: 500;
         }
+
         input[type="text"],
         input[type="password"],
         input[type="number"],
@@ -48,11 +54,18 @@
             box-sizing: border-box;
             font-size: 16px;
         }
+
+        input:focus {
+            border-color: #3b82f6;
+            outline: none;
+            box-shadow: 0 0 0 5px rgba(59, 130, 246, 0.3);
+        }
+
         button[type="submit"],
         .button-link {
             width: 100%;
             padding: 12px;
-            background-color: #6a0dad; /* Ungu */
+            background-color: #c084fc;
             color: white;
             border: none;
             border-radius: 4px;
@@ -64,26 +77,31 @@
             display: block;
             margin-top: 15px;
         }
+
         button[type="submit"]:hover,
         .button-link:hover {
-            background-color: #5a0a9a;
+            background-color: #a855f7;
         }
+
         .message {
             margin-top: 15px;
             padding: 10px;
             border-radius: 4px;
             text-align: center;
         }
+
         .message.success {
             background-color: #d4edda;
             color: #155724;
             border-color: #c3e6cb;
         }
+
         .message.error {
             background-color: #f8d7da;
             color: #721c24;
             border-color: #f5c6cb;
         }
+
         .form-section {
             border: 1px solid #eee;
             padding: 20px;
@@ -93,6 +111,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h2>Pendaftaran Ketua Karang Taruna</h2>
@@ -140,7 +159,9 @@
             <input type="hidden" name="action" value="check_kt">
             <div class="form-group">
                 <label for="nama_kt_check">Nama Karang Taruna:</label>
-                <input type="text" id="nama_kt_check" name="nama_kt_check" placeholder="Masukkan Nama Karang Taruna Anda" value="<?php echo htmlspecialchars($nama_kt_check_val); ?>">
+                <input type="text" id="nama_kt_check" name="nama_kt_check"
+                    placeholder="Masukkan Nama Karang Taruna Anda"
+                    value="<?php echo htmlspecialchars($nama_kt_check_val); ?>">
             </div>
             <button type="submit">Cek Karang Taruna</button>
             <?php if (!empty($message)): ?>
@@ -157,7 +178,8 @@
                     <input type="hidden" name="action" value="register_new_kt">
                     <div class="form-group">
                         <label for="nama_kt_new">Nama Karang Taruna:</label>
-                        <input type="text" id="nama_kt_new" name="nama_kt" value="<?php echo htmlspecialchars($nama_kt_check_val); ?>" required>
+                        <input type="text" id="nama_kt_new" name="nama_kt"
+                            value="<?php echo htmlspecialchars($nama_kt_check_val); ?>" required>
                     </div>
                     <div class="form-group">
                         <label for="alamat_kt_new">Alamat Karang Taruna:</label>
@@ -189,4 +211,5 @@
 
     </div>
 </body>
+
 </html>

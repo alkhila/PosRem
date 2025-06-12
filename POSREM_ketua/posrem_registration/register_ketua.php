@@ -9,10 +9,10 @@ $message_type = '';
 
 // Ambil ID Karang Taruna dari GET parameter atau POST
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id_kt'])) {
-    $selected_kt_id = (int)$_GET['id_kt'];
+    $selected_kt_id = (int) $_GET['id_kt'];
 } elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id_kt'])) {
     // Ini untuk kasus jika redirect dari process_registration.php setelah pendaftaran KT baru
-    $selected_kt_id = (int)$_POST['id_kt'];
+    $selected_kt_id = (int) $_POST['id_kt'];
     // Juga bisa ada pesan sukses dari pendaftaran KT sebelumnya
     if (isset($_POST['status']) && $_POST['status'] === 'success') {
         $message = 'Karang Taruna berhasil didaftarkan. Lanjutkan pendaftaran Ketua.';
@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $konf_pass_ketua = $_POST['konf_pass_ketua'] ?? '';
     $nama_ketua = trim($_POST['nama_ketua'] ?? '');
     $jenis_kelamin_ketua = $_POST['jenis_kelamin_ketua'] ?? '';
-    $umur_ketua = (int)($_POST['umur_ketua'] ?? 0);
+    $umur_ketua = (int) ($_POST['umur_ketua'] ?? 0);
     $no_hp_ketua = trim($_POST['no_hp_ketua'] ?? '');
     $agreement = isset($_POST['agreement']);
 
@@ -105,41 +105,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 ?>
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pendaftaran Ketua Karang Taruna</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f7f6;
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(to bottom, #fddde6, #cce7f5);
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            margin: 0;
+            margin: 20px;
         }
+
         .container {
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 600px;
+            background: white;
+            width: 700px;
+            max-width: 95%;
+            padding: 40px 50px;
+            border-radius: 12px;
+            margin-top: 0;
         }
+
         h2 {
             text-align: center;
             color: #333;
             margin-bottom: 25px;
         }
+
         .form-group {
             margin-bottom: 15px;
         }
+
         label {
             display: block;
             margin-bottom: 5px;
             color: #555;
         }
+
         input[type="text"],
         input[type="password"],
         input[type="number"],
@@ -153,10 +159,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             box-sizing: border-box;
             font-size: 16px;
         }
+
+        input:focus {
+            border-color: #3b82f6;
+            outline: none;
+            box-shadow: 0 0 0 5px rgba(59, 130, 246, 0.3);
+        }
+
+        .form-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #7c3aed;
+        }
+
+        .checkbox-label-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkbox-label-wrapper label {
+            margin: 0;
+        }
+
+        select,
+        option {
+            font-family: 'Segoe UI', sans-serif;
+        }
+
         button[type="submit"] {
             width: 100%;
             padding: 12px;
-            background-color: #6a0dad; /* Ungu */
+            background-color: #c084fc;
             color: white;
             border: none;
             border-radius: 4px;
@@ -164,40 +198,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             cursor: pointer;
             transition: background-color 0.3s ease;
         }
+
         button[type="submit"]:hover {
-            background-color: #5a0a9a;
+            background-color: #a855f7;
         }
+
         .message {
             margin-top: 15px;
             padding: 10px;
             border-radius: 4px;
             text-align: center;
         }
+
         .message.success {
             background-color: #d4edda;
             color: #155724;
             border-color: #c3e6cb;
         }
+
         .message.error {
             background-color: #f8d7da;
             color: #721c24;
             border-color: #f5c6cb;
         }
-        .back-link, .login-link { /* Tambah class .login-link */
+
+        .back-link,
+        .login-link {
             display: block;
             text-align: center;
             margin-top: 20px;
             color: #6a0dad;
             text-decoration: none;
         }
-        .back-link:hover, .login-link:hover { /* Tambah class .login-link */
+
+        .back-link:hover,
+        .login-link:hover {
             text-decoration: underline;
         }
-        .button-like-link { /* Style untuk link yang mirip tombol */
+
+        .button-like-link {
             display: block;
             width: 100%;
             padding: 12px;
-            background-color: #4CAF50; /* Warna hijau, bisa disesuaikan */
+            background-color: #4CAF50;
             color: white;
             border: none;
             border-radius: 4px;
@@ -206,13 +249,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             text-decoration: none;
             cursor: pointer;
             transition: background-color 0.3s ease;
-            margin-top: 15px; /* Spasi dari elemen di atasnya */
+            margin-top: 15px;
         }
+
         .button-like-link:hover {
             background-color: #45a049;
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h2>Form Pendaftaran Ketua Karang Taruna</h2>
@@ -224,7 +269,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         <?php endif; ?>
 
         <?php if ($selected_kt_id): ?>
-            <p>Karang Taruna Terpilih: <strong id="selected_kt_name_display"><?php echo htmlspecialchars($selected_kt_name); ?></strong></p>
+            <p>Karang Taruna Terpilih: <strong
+                    id="selected_kt_name_display"><?php echo htmlspecialchars($selected_kt_name); ?></strong></p>
 
             <form action="register_ketua.php" method="POST">
                 <input type="hidden" name="action" value="register_ketua">
@@ -232,7 +278,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
                 <div class="form-group">
                     <label for="usn_ketua">Username Ketua:</label>
-                    <input type="text" id="usn_ketua" name="usn_ketua" value="<?php echo htmlspecialchars($usn_ketua ?? ''); ?>" required>
+                    <input type="text" id="usn_ketua" name="usn_ketua"
+                        value="<?php echo htmlspecialchars($usn_ketua ?? ''); ?>" required>
                 </div>
                 <div class="form-group">
                     <label for="pass_ketua">Password Ketua:</label>
@@ -245,7 +292,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
                 <div class="form-group">
                     <label for="nama_ketua">Nama Lengkap Ketua:</label>
-                    <input type="text" id="nama_ketua" name="nama_ketua" value="<?php echo htmlspecialchars($nama_ketua ?? ''); ?>" required>
+                    <input type="text" id="nama_ketua" name="nama_ketua"
+                        value="<?php echo htmlspecialchars($nama_ketua ?? ''); ?>" required>
                 </div>
                 <div class="form-group">
                     <label for="jenis_kelamin_ketua">Jenis Kelamin Ketua:</label>
@@ -257,21 +305,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 </div>
                 <div class="form-group">
                     <label for="umur_ketua">Umur Ketua:</label>
-                    <input type="number" id="umur_ketua" name="umur_ketua" min="17" max="99" value="<?php echo htmlspecialchars($umur_ketua ?? ''); ?>" required>
+                    <input type="number" id="umur_ketua" name="umur_ketua" min="17" max="99"
+                        value="<?php echo htmlspecialchars($umur_ketua ?? ''); ?>" required>
                 </div>
                 <div class="form-group">
                     <label for="no_hp_ketua">No. HP Ketua:</label>
-                    <input type="tel" id="no_hp_ketua" name="no_hp_ketua" placeholder="e.g., 081234567890" value="<?php echo htmlspecialchars($no_hp_ketua ?? ''); ?>" required>
+                    <input type="tel" id="no_hp_ketua" name="no_hp_ketua" placeholder="e.g., 081234567890"
+                        value="<?php echo htmlspecialchars($no_hp_ketua ?? ''); ?>" required>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group checkbox-label-wrapper">
                     <input type="checkbox" id="agreement" name="agreement" <?php echo (isset($agreement) && $agreement) ? 'checked' : ''; ?> required>
-                    <label for="agreement">Dengan ini saya menyatakan bahwa saya benar-benar ketua karang taruna dan semua data yang diberikan adalah benar.</label>
+                    <label for="agreement">Dengan ini saya menyatakan bahwa saya benar-benar ketua karang taruna dan semua
+                        data yang diberikan adalah benar.</label>
                 </div>
                 <button type="submit">Daftar</button>
 
                 <?php if ($message_type == 'success'): ?>
-                    <a href="../login.php" class="button-like-link" style="background-color: #28a745;">Lanjut ke Halaman Login</a>
+                    <a href="../login.php" class="button-like-link" style="background-color: #28a745;">Lanjut ke Halaman
+                        Login</a>
                 <?php endif; ?>
                 <a href="index.php" class="back-link">Kembali ke Halaman Pendaftaran Awal</a>
 
@@ -279,7 +331,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         <?php else: ?>
             <p>Tidak ada Karang Taruna yang terpilih atau ditemukan.</p>
             <a href="index.php" class="back-link">Kembali ke Halaman Pendaftaran Awal</a>
-            <a href="../login.php" class="button-like-link" style="background-color: #007bff;">Kembali ke Halaman Login</a> <?php endif; ?>
+            <a href="../login.php" class="button-like-link" style="background-color: #007bff;">Kembali ke Halaman Login</a>
+        <?php endif; ?>
     </div>
 </body>
+
 </html>

@@ -4,7 +4,7 @@
 define('DB_SERVER', 'localhost');
 define('DB_USERNAME', 'root'); // Ganti dengan username database Anda
 define('DB_PASSWORD', '');     // Ganti dengan password database Anda
-define('DB_NAME', 'posrem2');
+define('DB_NAME', 'posrem');
 
 // Membuat koneksi
 $conn = new mysqli(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
