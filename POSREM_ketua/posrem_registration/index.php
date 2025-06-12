@@ -109,6 +109,18 @@
             border-radius: 5px;
             background-color: #fdfdfd;
         }
+
+        .login-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: #6a0dad;
+            text-decoration: none;
+        }
+
+        .login-link:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 
@@ -208,6 +220,8 @@
                 </form>
             </div>
         <?php endif; ?>
+
+        <a href="../login.php" class="login-link">Sudah punya akun? Masuk di sini</a>
 
     </div>
 </body>

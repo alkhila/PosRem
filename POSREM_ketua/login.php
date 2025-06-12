@@ -16,21 +16,23 @@ session_start();
 $loginError = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-  $username = $_POST["username"];
+  $username = trim($_POST["username"]);
   $password = $_POST["password"];
 
-  // Cek apakah username ada
-  $stmt = $conn->prepare("SELECT * FROM anggota WHERE usn_anggota = ?");
+  // Ambil data dari tabel ketua_karang_taruna
+  $stmt = $conn->prepare("SELECT * FROM ketua_karang_taruna WHERE usn_ketua = ?");
   $stmt->bind_param("s", $username);
   $stmt->execute();
   $result = $stmt->get_result();
 
   if ($result->num_rows === 1) {
     $user = $result->fetch_assoc();
-    if (password_verify($password, $user['pass_anggota'])) {
-      // Login berhasil
-      $_SESSION["username"] = $username;
-      echo "<script>alert('Login berhasil'); window.location.href='beranda.php';</script>";
+
+    if (password_verify($password, $user['pass_ketua'])) {
+      // Login sukses
+      $_SESSION["username"] = $user["usn_ketua"];
+      $_SESSION["id_ketua"] = $user["id_ketua"];
+      echo "<script>alert('Login berhasil'); window.location.href='dashboard_ketua.php';</script>";
       exit;
     } else {
       $loginError = "Password salah.";
@@ -49,11 +51,10 @@ $conn->close();
 <html lang="id">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login Ketua Karang Taruna</title>
   <style>
-    /* CSS tetap sama */
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
@@ -180,7 +181,7 @@ $conn->close();
         PosRem
       </h1>
       <br><br>
-      <form method="POST" action="dashboard_ketua.php">
+      <form method="POST" action="">
         <?php if ($loginError): ?>
           <div class="error-message"><?php echo $loginError; ?></div>
         <?php endif; ?>
@@ -194,7 +195,7 @@ $conn->close();
         </div>
         <br><br>
         <div class="form-footer">
-          Belum punya akun? <a href="posrem_registration/register_ketua.php">Daftar</a>
+          Belum punya akun? <a href="posrem_registration/index.php">Daftar</a>
         </div>
         <button class="btn" type="submit">Log In</button>
       </form>

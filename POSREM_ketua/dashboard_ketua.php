@@ -1,3 +1,101 @@
+<?php
+session_start(); // Start the session at the very beginning of the script
+
+// Check if the user is logged in (i.e., if id_ketua is set in the session)
+if (!isset($_SESSION["id_ketua"])) {
+  // If not logged in, redirect to the login page
+  header("Location: login_ketua.php"); // Make sure this path is correct for your login file
+  exit;
+}
+
+// Database connection details
+$servername = "localhost"; // Or your database host
+$username = "root";        // Your database username
+$password = "";            // Your database password
+$dbname = "posrem";
+
+// Create connection
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+// Check connection
+if ($conn->connect_error) {
+  die("Koneksi gagal: " . $conn->connect_error);
+}
+
+// Get the logged-in ketua's ID from the session
+$id_ketua_logged_in = $_SESSION["id_ketua"];
+
+// Fetch ketua_karang_taruna data for the logged-in user
+$sql_ketua = "SELECT nama_ketua FROM ketua_karang_taruna WHERE id_ketua = ?";
+$stmt_ketua = $conn->prepare($sql_ketua);
+if ($stmt_ketua === false) {
+  die("Error preparing ketua statement: " . $conn->error);
+}
+$stmt_ketua->bind_param("i", $id_ketua_logged_in);
+$stmt_ketua->execute();
+$result_ketua = $stmt_ketua->get_result();
+
+$nama_ketua = "Guest"; // Default name
+if ($result_ketua->num_rows > 0) {
+  $row_ketua = $result_ketua->fetch_assoc();
+  $nama_ketua = $row_ketua['nama_ketua'];
+}
+$stmt_ketua->close();
+
+
+// Query untuk mengambil semua data yang diperlukan untuk riwayat terbaru, termasuk pesan lengkap
+// Kali ini mengambil pesan dari 'pesan_kesehatan.pesan' untuk tampilan singkat dan full
+$sql_riwayat = "
+    SELECT
+        p.id_pemeriksaan,
+        p.tgl,
+        a.nama_anggota,
+        pk.pesan AS pesan_full_dan_singkat -- Mengambil kolom 'pesan' dari pesan_kesehatan
+    FROM
+        pemeriksaan p
+    JOIN
+        anggota a ON p.id_anggota = a.id_anggota
+    LEFT JOIN
+        pesan_kesehatan pk ON p.id_pemeriksaan = pk.id_pemeriksaan
+    WHERE
+        p.id_ketua = ?
+    ORDER BY
+        p.tgl DESC, p.id_pemeriksaan DESC
+    LIMIT 5";
+
+$stmt_riwayat = $conn->prepare($sql_riwayat);
+if ($stmt_riwayat === false) {
+  die("Error preparing riwayat statement: " . $conn->error);
+}
+$stmt_riwayat->bind_param("i", $id_ketua_logged_in);
+$stmt_riwayat->execute();
+$result_riwayat = $stmt_riwayat->get_result();
+
+$all_riwayat_data = []; // Array untuk menyimpan semua data riwayat, termasuk pesan full
+if ($result_riwayat->num_rows > 0) {
+  while ($row_riwayat = $result_riwayat->fetch_assoc()) {
+    // Tentukan pesan lengkap: menggunakan pesan dari pesan_kesehatan.pesan, atau fallback ke default
+    $pesan_lengkap_untuk_modal = $row_riwayat['pesan_full_dan_singkat'] ?: "Tidak ada pesan lengkap.";
+
+    // Tambahkan ke array untuk JavaScript
+    $all_riwayat_data[] = [
+      'id_pemeriksaan' => $row_riwayat['id_pemeriksaan'],
+      'nama_anggota' => htmlspecialchars($row_riwayat['nama_anggota']), // Pastikan data aman untuk JS
+      'tanggal_pemeriksaan' => htmlspecialchars(date('d F Y H:i', strtotime($row_riwayat['tgl']))), // Pastikan data aman
+      'pesan_lengkap' => htmlspecialchars($pesan_lengkap_untuk_modal) // Pastikan data aman
+    ];
+
+    // Format untuk tampilan tabel
+    $tanggal = date('d F Y', strtotime($row_riwayat['tgl']));
+    $jam = date('H.i', strtotime($row_riwayat['tgl']));
+    $pesan_singkat_display = $row_riwayat['pesan_full_dan_singkat'] ? $row_riwayat['pesan_full_dan_singkat'] : "Tidak ada pesan.";
+    // Potong pesan singkat jika terlalu panjang (sesuaikan panjangnya)
+    if (strlen($pesan_singkat_display) > 80) {
+      $pesan_singkat_display = substr($pesan_singkat_display, 0, 80) . '...';
+    }
+  }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -171,7 +269,7 @@
       color: white;
       border: none;
       border-radius: 50px;
-      padding: 0.5rem 1rem;
+      padding: 0.5rem 1.5rem;
       font-size: 1rem;
       transition: all 0.3s ease;
     }
@@ -252,23 +350,83 @@
       font-weight: bold;
     }
 
-    button {
-      background-color: #B57DE4;
+    /* Styling untuk modal (pop-up) */
+    .modal-dialog-centered {
+      display: flex;
+      align-items: center;
+      min-height: calc(100% - (0.5rem * 2));
+    }
+
+    @media (min-width: 576px) {
+      .modal-dialog-centered {
+        min-height: calc(100% - (1.75rem * 2));
+      }
+    }
+
+    #messageDetailModal .modal-content {
+      background-color: white;
+      border-radius: 15px;
+      border: 1px solid #ced4da;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .modal-header {
+      border-bottom: none;
+      padding: 0;
+      margin-bottom: 20px;
+      justify-content: center;
+    }
+
+    .modal-title {
+      color: #8A70D6;
+      font-weight: bold;
+      font-size: 1.5rem;
+      margin-top: 1px;
+      /* Sesuaikan jarak atas title */
+    }
+
+    .modal-body {
+      padding: 10px 0;
+      /* Kurangi padding vertikal */
+    }
+
+    .modal-footer {
+      border-top: none;
+      padding: 10px 0 0;
+      /* Kurangi padding vertikal */
+      justify-content: center;
+    }
+
+    .modal-footer .btn-secondary {
+      background-color: #8A70D6;
       color: white;
       border: none;
-      border-radius: 20px;
-      padding: 8px 16px;
+      border-radius: 50px;
+      padding: 0.75rem 2rem;
+      font-size: 1rem;
+      transition: background-color 0.3s ease;
+    }
+
+    .modal-footer .btn-secondary:hover {
+      background-color: #a855f7;
+    }
+
+    /* Notification Bell Icon */
+    .modal-notification-icon {
+      color: #8A70D6;
+      font-size: 2rem;
+      /* Ukuran icon */
+      margin-bottom: 10px;
     }
   </style>
 
-  </style>
 </head>
 
 <body>
   <div class="d-flex">
 
     <div id="sidebar" class="sidebar expanded d-flex flex-column align-items-start p-3">
-      <!-- Sidebar -->
       <button class="sidebar-toggle" onclick="toggleSidebar()">
         <div class="sidebar-logo">
           <img src="asset/logo_posrem.png" alt="Logo PosRem" width="40px">
@@ -313,7 +471,7 @@
           </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="#" class="nav-link">
+          <a href="logout.php" class="nav-link">
             <img src="asset/logo_keluar.png" alt="" width="30px">
             <span class="sidebar-text">Keluar</span>
           </a>
@@ -321,17 +479,16 @@
       </ul>
     </div>
 
-    <!-- Konten utama -->
     <div id="main-content" class="content">
 
       <div class="card">
         <div class="card-body">
-          <h2>Halo, Levi!</h2> <br>
+          <h2>Halo, <?php echo htmlspecialchars($nama_ketua); ?>!</h2> <br>
 
           <div class="kt-card">
             <h3>Sudah cek kesehatan bulan ini?</h3>
             <p>Jangan lupa laporan kesehatanmu ya!</p>
-            <button class="btn-view">Lapor</button>
+            <a href="cetakLaporan.php"><button class="btn-view">Lapor</button></a>
           </div>
 
           <div class="container mt-4">
@@ -345,30 +502,84 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td class="left-info" style="width: 20%;">
-                      <span class="kode">Kode 1</span><br>
-                      17 Agustus 2025 <br> 18.39 WIB
-                    </td>
-                    <td class="middle-info" style="width: 65%;">
-                      <br>Mark
-                      <br>Pesan : “Waah, ada peningkatan ya. Tetap jaga pola makan, jangan lupa makan sayur-sayuran
-                      hijau.”
-                    </td>
-                    <td class="right-info" style="width: 25%;"><br><button class="btn-view">Data Kesehatan</button></td>
-                  </tr>
-                  <tr>
-                    <td class="left-info" style="width: 20%;">
-                      <span class="kode">Kode 1</span><br>
-                      17 Agustus 2025 <br> 18.39 WIB
-                    </td>
-                    <td class="middle-info" style="width: 65%;">
-                      <br>Mark
-                      <br>Pesan : “Waah, ada peningkatan ya. Tetap jaga pola makan, jangan lupa makan sayur-sayuran
-                      hijau.”
-                    </td>
-                    <td class="right-info" style="width: 25%;"><br><button class="btn-view">Data Kesehatan</button></td>
-                  </tr>
+                  <?php
+                  // Query untuk mengambil semua data yang diperlukan untuk riwayat terbaru, termasuk pesan lengkap
+                  // Mengambil pesan dari 'pesan_kesehatan.pesan' untuk tampilan singkat dan full
+                  $sql_riwayat = "
+                                        SELECT
+                                            p.id_pemeriksaan,
+                                            p.tgl,
+                                            a.nama_anggota,
+                                            pk.pesan AS pesan_full_dan_singkat -- Mengambil kolom 'pesan' dari pesan_kesehatan
+                                        FROM
+                                            pemeriksaan p
+                                        JOIN
+                                            anggota a ON p.id_anggota = a.id_anggota
+                                        LEFT JOIN
+                                            pesan_kesehatan pk ON p.id_pemeriksaan = pk.id_pemeriksaan
+                                        WHERE
+                                            p.id_ketua = ?
+                                        ORDER BY
+                                            p.tgl DESC, p.id_pemeriksaan DESC
+                                        LIMIT 5";
+
+                  $stmt_riwayat = $conn->prepare($sql_riwayat);
+                  if ($stmt_riwayat === false) {
+                    die("Error preparing riwayat statement: " . $conn->error);
+                  }
+                  $stmt_riwayat->bind_param("i", $id_ketua_logged_in);
+                  $stmt_riwayat->execute();
+                  $result_riwayat = $stmt_riwayat->get_result();
+
+                  $all_riwayat_data = []; // Array untuk menyimpan semua data riwayat, termasuk pesan full
+                  if ($result_riwayat->num_rows > 0) {
+                    while ($row_riwayat = $result_riwayat->fetch_assoc()) {
+                      // Tentukan pesan lengkap: menggunakan pesan dari pesan_kesehatan.pesan, atau fallback ke default
+                      $pesan_lengkap_untuk_modal = $row_riwayat['pesan_full_dan_singkat'] ?: "Tidak ada pesan lengkap.";
+
+                      // Tambahkan ke array untuk JavaScript
+                      $all_riwayat_data[] = [
+                        'id_pemeriksaan' => $row_riwayat['id_pemeriksaan'],
+                        'nama_anggota' => htmlspecialchars($row_riwayat['nama_anggota']), // Pastikan data aman untuk JS
+                        'tanggal_pemeriksaan' => htmlspecialchars(date('d F Y H:i', strtotime($row_riwayat['tgl']))), // Pastikan data aman
+                        'pesan_lengkap' => htmlspecialchars($pesan_lengkap_untuk_modal) // Pastikan data aman
+                      ];
+
+                      // Format untuk tampilan tabel
+                      $tanggal = date('d F Y', strtotime($row_riwayat['tgl']));
+                      $jam = date('H.i', strtotime($row_riwayat['tgl']));
+                      $pesan_singkat_display = $row_riwayat['pesan_full_dan_singkat'] ? $row_riwayat['pesan_full_dan_singkat'] : "Tidak ada pesan.";
+                      // Potong pesan singkat jika terlalu panjang (sesuaikan panjangnya)
+                      if (strlen($pesan_singkat_display) > 80) {
+                        $pesan_singkat_display = substr($pesan_singkat_display, 0, 80) . '...';
+                      }
+                      ?>
+                      <tr>
+                        <td class="left-info" style="width: 20%;">
+                          <span class="kode">Kode <?php echo htmlspecialchars($row_riwayat['id_pemeriksaan']); ?></span><br>
+                          <?php echo htmlspecialchars($tanggal); ?> <br> <?php echo htmlspecialchars($jam); ?> WIB
+                        </td>
+                        <td class="middle-info" style="width: 65%;">
+                          <br><?php echo htmlspecialchars($row_riwayat['nama_anggota']); ?>
+                          <br>Pesan Dokter : “<?php echo htmlspecialchars($pesan_singkat_display); ?>”
+                        </td>
+                        <td class="right-info" style="width: 25%;">
+                          <br>
+                          <button class="btn-view view-message-btn" data-bs-toggle="modal"
+                            data-bs-target="#messageDetailModal"
+                            data-id-pemeriksaan="<?php echo htmlspecialchars($row_riwayat['id_pemeriksaan']); ?>">
+                            Pesan
+                          </button>
+                        </td>
+                      </tr>
+                      <?php
+                    }
+                  } else {
+                    echo '<tr><td colspan="3" style="text-align: center;">Tidak ada riwayat kesehatan terbaru.</td></tr>';
+                  }
+                  // PENTING: Tutup statement setelah loop while
+                  $stmt_riwayat->close();
+                  ?>
                 </tbody>
               </table>
             </div>
@@ -380,6 +591,30 @@
     </div>
   </div>
 
+  <div class="modal fade" id="messageDetailModal" tabindex="-1" aria-labelledby="messageDetailModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+        </div>
+        <h5 class="modal-title" id="messageDetailModalLabel">Detail Pesan Kesehatan</h5>
+        <p class="mt-3"><strong>Anggota:</strong> <span id="modalAnggotaNama"></span></p>
+        <p><strong>Tanggal:</strong> <span id="modalTanggalPemeriksaan"></span></p>
+        <hr>
+        <p id="modalPesanLengkap"></p>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     const sidebar = document.getElementById("sidebar");
     const content = document.getElementById("main-content");
@@ -389,7 +624,45 @@
       sidebar.classList.toggle("expanded");
       content.classList.toggle("collapsed");
     }
+
+    // Data riwayat yang sudah diambil dari PHP saat halaman dimuat
+    // Menggunakan JSON.parse() untuk mengubah string JSON dari PHP menjadi objek JavaScript
+    const allRiwayatData = <?php echo json_encode($all_riwayat_data); ?>;
+
+    // JavaScript untuk menangani modal pesan
+    document.addEventListener('DOMContentLoaded', function () {
+      var messageDetailModal = document.getElementById('messageDetailModal');
+      messageDetailModal.addEventListener('show.bs.modal', function (event) {
+        // Button that triggered the modal
+        var button = event.relatedTarget;
+        // Extract info from data-bs-* attributes
+        var id_pemeriksaan_to_show = button.getAttribute('data-id-pemeriksaan');
+
+        // Get elements to update
+        var modalAnggotaNama = messageDetailModal.querySelector('#modalAnggotaNama');
+        var modalTanggalPemeriksaan = messageDetailModal.querySelector('#modalTanggalPemeriksaan');
+        var modalPesanLengkap = messageDetailModal.querySelector('#modalPesanLengkap');
+
+        // Cari data yang sesuai di array allRiwayatData
+        const foundData = allRiwayatData.find(item => item.id_pemeriksaan == id_pemeriksaan_to_show);
+
+        if (foundData) {
+          modalAnggotaNama.textContent = foundData.nama_anggota;
+          modalTanggalPemeriksaan.textContent = foundData.tanggal_pemeriksaan;
+          modalPesanLengkap.textContent = foundData.pesan_lengkap;
+        } else {
+          modalAnggotaNama.textContent = 'Error';
+          modalTanggalPemeriksaan.textContent = '';
+          modalPesanLengkap.textContent = 'Pesan tidak ditemukan.';
+        }
+      });
+    });
   </script>
 </body>
 
 </html>
+<?php
+// Pindahkan penutupan koneksi ke bagian paling akhir script PHP
+// setelah semua HTML dan JavaScript yang bergantung pada data PHP telah di-generate.
+$conn->close();
+?>

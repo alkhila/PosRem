@@ -1,3 +1,93 @@
+<?php
+session_start(); // Mulai sesi
+
+// Cek apakah pengguna sudah login (Ketua)
+if (!isset($_SESSION["id_ketua"])) {
+  header("Location: login_ketua.php"); // Alihkan ke halaman login jika belum login
+  exit;
+}
+
+// Koneksi ke database
+$servername = "localhost"; // Sesuaikan jika host database Anda berbeda
+$username = "root";        // Ganti dengan username database Anda
+$password = "";            // Ganti dengan password database Anda
+$dbname = "posrem";
+
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+// Cek koneksi
+if ($conn->connect_error) {
+  die("Koneksi gagal: " . $conn->connect_error);
+}
+
+// Ambil id_ketua dari sesi
+$id_ketua_logged_in = $_SESSION["id_ketua"];
+
+// 1. Ambil ID Karang Taruna (id_kt) yang terkait dengan Ketua yang sedang login
+$sql_get_id_kt = "SELECT id_kt FROM ketua_karang_taruna WHERE id_ketua = ?";
+$stmt_get_id_kt = $conn->prepare($sql_get_id_kt);
+if ($stmt_get_id_kt === false) {
+  die("Error preparing id_kt statement: " . $conn->error);
+}
+$stmt_get_id_kt->bind_param("i", $id_ketua_logged_in);
+$stmt_get_id_kt->execute();
+$result_get_id_kt = $stmt_get_id_kt->get_result();
+
+$id_kt_ketua = null;
+if ($result_get_id_kt->num_rows > 0) {
+  $row_kt_ketua = $result_get_id_kt->fetch_assoc();
+  $id_kt_ketua = $row_kt_ketua['id_kt'];
+}
+$stmt_get_id_kt->close();
+
+$nama_karang_taruna = "N/A";
+$alamat_karang_taruna = "N/A";
+
+// 2. Jika id_kt ditemukan, ambil detail Karang Taruna
+if ($id_kt_ketua !== null) {
+  $sql_get_karang_taruna = "SELECT nama_kt, alamat FROM karang_taruna WHERE id_kt = ?";
+  $stmt_get_karang_taruna = $conn->prepare($sql_get_karang_taruna);
+  if ($stmt_get_karang_taruna === false) {
+    die("Error preparing karang taruna statement: " . $conn->error);
+  }
+  $stmt_get_karang_taruna->bind_param("i", $id_kt_ketua);
+  $stmt_get_karang_taruna->execute();
+  $result_karang_taruna = $stmt_get_karang_taruna->get_result();
+
+  if ($result_karang_taruna->num_rows > 0) {
+    $row_karang_taruna = $result_karang_taruna->fetch_assoc();
+    $nama_karang_taruna = $row_karang_taruna['nama_kt'];
+    $alamat_karang_taruna = $row_karang_taruna['alamat'];
+  }
+  $stmt_get_karang_taruna->close();
+} else {
+  // Jika Ketua tidak terkait dengan Karang Taruna, berikan pesan default atau kosong
+  $nama_karang_taruna = "Belum ada Karang Taruna terkait";
+  $alamat_karang_taruna = "Silakan hubungi administrator";
+}
+
+
+// --- Ini adalah kode yang sama dengan dashboard_ketua.php untuk nama di sidebar ---
+// Fetch nama ketua untuk ditampilkan di sidebar
+$nama_ketua_sidebar = "Ketua"; // Default
+$sql_nama_ketua = "SELECT nama_ketua FROM ketua_karang_taruna WHERE id_ketua = ?";
+$stmt_nama_ketua = $conn->prepare($sql_nama_ketua);
+if ($stmt_nama_ketua === false) {
+  die("Error preparing nama ketua statement: " . $conn->error);
+}
+$stmt_nama_ketua->bind_param("i", $id_ketua_logged_in);
+$stmt_nama_ketua->execute();
+$result_nama_ketua = $stmt_nama_ketua->get_result();
+if ($result_nama_ketua->num_rows > 0) {
+  $row_nama_ketua = $result_nama_ketua->fetch_assoc();
+  $nama_ketua_sidebar = $row_nama_ketua['nama_ketua'];
+}
+$stmt_nama_ketua->close();
+// --- Akhir kode nama sidebar ---
+
+$conn->close(); // Tutup koneksi database
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -177,7 +267,8 @@
     }
 
     .btn-view:hover {
-      background-color: rgba(255, 255, 255, 0.5);
+      background-color: rgba(161, 75, 218, 0.64);
+      /* Mengubah ini untuk konsistensi */
     }
 
     h2 {
@@ -192,7 +283,6 @@
   <div class="d-flex">
 
     <div id="sidebar" class="sidebar expanded d-flex flex-column align-items-start p-3">
-      <!-- Sidebar -->
       <button class="sidebar-toggle" onclick="toggleSidebar()">
         <div class="sidebar-logo">
           <img src="asset/logo_posrem.png" alt="Logo PosRem" width="40px">
@@ -237,7 +327,7 @@
           </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="#" class="nav-link">
+          <a href="logout.php" class="nav-link">
             <img src="asset/logo_keluar.png" alt="" width="30px">
             <span class="sidebar-text">Keluar</span>
           </a>
@@ -245,15 +335,14 @@
       </ul>
     </div>
 
-    <!-- Konten utama -->
     <div id="main-content" class="content">
       <div class="card">
         <div class="card-body">
-          <h2>Halo, Levi!</h2> <br>
+          <h2>Halo, <?php echo htmlspecialchars($nama_ketua_sidebar); ?>!</h2> <br>
 
           <div class="kt-card">
-            <h3>Karang Taruna Desa Demen</h3>
-            <p>Batikan II, Demen, Temon, Kulon Progo</p>
+            <h3><?php echo htmlspecialchars($nama_karang_taruna); ?></h3>
+            <p><?php echo htmlspecialchars($alamat_karang_taruna); ?></p>
             <a href="dataAnggotaKT_ketua.php"><button class="btn-view">Lihat Data</button></a>
           </div>
 

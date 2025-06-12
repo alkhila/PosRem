@@ -1,9 +1,67 @@
+<?php
+session_start(); // Mulai sesi
+
+// Cek apakah pengguna sudah login (Ketua)
+if (!isset($_SESSION["id_ketua"])) {
+  header("Location: login_ketua.php"); // Alihkan ke halaman login jika belum login
+  exit;
+}
+
+// 1. Cek apakah id_anggota diberikan melalui URL
+if (!isset($_GET['id_anggota']) || !is_numeric($_GET['id_anggota'])) {
+  // Jika id_anggota tidak valid, alihkan kembali ke halaman daftar anggota
+  echo "<script>alert('ID Anggota tidak valid atau tidak ditemukan.'); window.location.href='KT_ketua.php';</script>";
+  exit;
+}
+
+// Ambil id_anggota dari URL
+$id_anggota_yang_dipilih = $_GET['id_anggota'];
+
+// Koneksi ke database
+$servername = "localhost"; // Sesuaikan jika host database Anda berbeda
+$username = "root";        // Ganti dengan username database Anda
+$password = "";            // Ganti dengan password database Anda
+$dbname = "posrem";
+
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+// Cek koneksi
+if ($conn->connect_error) {
+  die("Koneksi gagal: " . $conn->connect_error);
+}
+
+// Query untuk mengambil data anggota berdasarkan id_anggota
+// Kolom yang diambil: nama_anggota, jenis_kelamin_anggota, umur_anggota, no_hp_anggota, usn_anggota, pass_anggota
+$sql_anggota_detail = "SELECT nama_anggota, jenis_kelamin_anggota, umur_anggota, no_hp_anggota, usn_anggota, pass_anggota FROM anggota WHERE id_anggota = ?";
+$stmt_anggota_detail = $conn->prepare($sql_anggota_detail);
+
+if ($stmt_anggota_detail === false) {
+  die("Error preparing statement: " . $conn->error);
+}
+
+$stmt_anggota_detail->bind_param("i", $id_anggota_yang_dipilih);
+$stmt_anggota_detail->execute();
+$result_anggota_detail = $stmt_anggota_detail->get_result();
+
+$data_anggota = null;
+if ($result_anggota_detail->num_rows > 0) {
+  $data_anggota = $result_anggota_detail->fetch_assoc();
+} else {
+  // Jika data anggota tidak ditemukan, alihkan kembali atau tampilkan pesan error
+  echo "<script>alert('Data anggota tidak ditemukan.'); window.location.href='KT_ketua.php';</script>";
+  exit;
+}
+
+$stmt_anggota_detail->close();
+$conn->close(); // Tutup koneksi setelah data diambil
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
   <meta charset="UTF-8">
-  <title>Form Data Kesehatan</title>
+  <title>Detail Data Anggota</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
@@ -196,7 +254,6 @@
   <div class="d-flex">
 
     <div id="sidebar" class="sidebar expanded d-flex flex-column align-items-start p-3">
-      <!-- Sidebar -->
       <button class="sidebar-toggle" onclick="toggleSidebar()">
         <div class="sidebar-logo">
           <img src="asset/logo_posrem.png" alt="Logo PosRem" width="40px">
@@ -211,13 +268,12 @@
           </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="KT_ketua.php" class="nav-link">
-            <img src="asset/logo_KT.png" alt="" width="30px">
+          <a href="KT_ketua.php" class="nav-link active"> <img src="asset/logo_KT.png" alt="" width="30px">
             <span class="sidebar-text">Karang Taruna</span>
           </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="#" class="nav-link active">
+          <a href="formDK_ketua.php" class="nav-link">
             <img src="asset/logo_data kesehatan.png" alt="" width="30px">
             <span class="sidebar-text">Data Kesehatan</span>
           </a>
@@ -241,15 +297,13 @@
           </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="#" class="nav-link">
-            <img src="asset/logo_keluar.png" alt="" width="30px">
+          <a href="logout.php" class="nav-link"> <img src="asset/logo_keluar.png" alt="" width="30px">
             <span class="sidebar-text">Keluar</span>
           </a>
         </li>
       </ul>
     </div>
 
-    <!-- Konten utama -->
     <div id="main-content" class="content">
       <div class="card">
         <div class="card-body">
@@ -268,10 +322,10 @@
                       </div>
 
                       <div class="col-6">
-                        <p>Levi</p>
-                        <p>Perempuan</p>
-                        <p>18</p>
-                        <p>0987654321</p>
+                        <p><?php echo htmlspecialchars($data_anggota['nama_anggota']); ?></p>
+                        <p><?php echo htmlspecialchars($data_anggota['jenis_kelamin_anggota']); ?></p>
+                        <p><?php echo htmlspecialchars($data_anggota['umur_anggota']); ?></p>
+                        <p><?php echo htmlspecialchars($data_anggota['no_hp_anggota']); ?></p>
                       </div>
                     </div>
                   </div>
@@ -286,8 +340,8 @@
                       </div>
 
                       <div class="col-6">
-                        <p>ackermanlev8</p>
-                        <p>levackerman*</p>
+                        <p><?php echo htmlspecialchars($data_anggota['usn_anggota']); ?></p>
+                        <p><?php echo htmlspecialchars($data_anggota['pass_anggota']); ?></p>
                       </div>
                     </div>
                   </div>

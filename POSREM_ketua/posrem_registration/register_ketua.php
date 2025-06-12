@@ -76,9 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 $message = 'Username sudah digunakan. Silakan pilih username lain.';
                 $message_type = 'error';
             } else {
-                // *** PENTING: Password TIDAK di-hash sesuai permintaan Anda ***
-                // *** PERINGATAN: Menyimpan password plaintext sangat tidak aman ***
-                $pass_ketua_to_save = $pass_ketua;
+                $pass_ketua_to_save = password_hash($pass_ketua, PASSWORD_DEFAULT);
 
                 $stmt_insert = $conn->prepare("INSERT INTO ketua_karang_taruna (id_kt, usn_ketua, pass_ketua, nama_ketua, jenis_kelamin_ketua, umur_ketua, no_hp_ketua) VALUES (?, ?, ?, ?, ?, ?, ?)");
                 $stmt_insert->bind_param("issssii", $selected_kt_id, $usn_ketua, $pass_ketua_to_save, $nama_ketua, $jenis_kelamin_ketua, $umur_ketua, $no_hp_ketua);
