@@ -273,7 +273,7 @@ $conn->close(); // Tutup koneksi setelah data diambil
           </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="formDK_ketua.php" class="nav-link">
+          <a href="dataKesehatan.php" class="nav-link">
             <img src="asset/logo_data kesehatan.png" alt="" width="30px">
             <span class="sidebar-text">Data Kesehatan</span>
           </a>

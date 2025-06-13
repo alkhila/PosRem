@@ -397,7 +397,7 @@ $result_anggota = $stmt_anggota->get_result();
           </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="formDK_ketua.php" class="nav-link">
+          <a href="dataKesehatan.php" class="nav-link">
             <img src="asset/logo_data kesehatan.png" alt="" width="30px">
             <span class="sidebar-text">Data Kesehatan</span>
           </a>
@@ -439,7 +439,8 @@ $result_anggota = $stmt_anggota->get_result();
               <table class="table-purple">
                 <thead>
                   <tr>
-                    <th class="fw-bold text-center pb-2 border-bottom border-black" style="color: #8A70D6;">
+                    <th class="fw-bold pb-2 border-bottom border-black"
+                      style="color: #8A70D6; text-align: left; padding-left: 50px;">
                       Nama</th>
                     <th class="fw-bold text-center pb-2 border-bottom border-black" style="color: #8A70D6;">
                       Jenis Kelamin</th>
@@ -457,7 +458,9 @@ $result_anggota = $stmt_anggota->get_result();
                     while ($row = $result_anggota->fetch_assoc()) {
                       ?>
                       <tr>
-                        <td style="width: 20%;"><?php echo htmlspecialchars($row['nama_anggota']); ?></td>
+                        <td style="width: 20%; text-align: left; padding-left: 35px;">
+                          <?php echo htmlspecialchars($row['nama_anggota']); ?>
+                        </td>
                         <td style="width: 20%;"><?php echo htmlspecialchars($row['jenis_kelamin_anggota']); ?></td>
                         <td style="width: 20%;"><?php echo htmlspecialchars($row['umur_anggota']); ?></td>
                         <td style="width: 22%;"><?php echo htmlspecialchars($row['no_hp_anggota']); ?></td>

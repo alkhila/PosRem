@@ -4,7 +4,7 @@ session_start(); // Start the session at the very beginning of the script
 // Check if the user is logged in (i.e., if id_ketua is set in the session)
 if (!isset($_SESSION["id_ketua"])) {
   // If not logged in, redirect to the login page
-  header("Location: login_ketua.php"); // Make sure this path is correct for your login file
+  header("Location: login.php"); // Make sure this path is correct for your login file
   exit;
 }
 
@@ -447,7 +447,7 @@ if ($result_riwayat->num_rows > 0) {
           </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="formDK_ketua.php" class="nav-link">
+          <a href="dataKesehatan.php" class="nav-link">
             <img src="asset/logo_data kesehatan.png" alt="" width="30px">
             <span class="sidebar-text">Data Kesehatan</span>
           </a>

@@ -3,7 +3,7 @@ session_start(); // Mulai sesi
 
 // Cek apakah pengguna sudah login (Ketua)
 if (!isset($_SESSION["id_ketua"])) {
-  header("Location: login_ketua.php"); // Alihkan ke halaman login jika belum login
+  header("Location: login.php"); // Alihkan ke halaman login jika belum login
   exit;
 }
 
@@ -303,7 +303,7 @@ $conn->close(); // Tutup koneksi database
           </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="formDK_ketua.php" class="nav-link">
+          <a href="dataKesehatan.php" class="nav-link">
             <img src="asset/logo_data kesehatan.png" alt="" width="30px">
             <span class="sidebar-text">Data Kesehatan</span>
           </a>
