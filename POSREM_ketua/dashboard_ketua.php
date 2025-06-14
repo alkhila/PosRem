@@ -1,5 +1,6 @@
 <?php
 session_start(); // Start the session at the very beginning of the script
+date_default_timezone_set('Asia/Jakarta'); // PERBAIKAN: Atur zona waktu PHP
 
 // Check if the user is logged in (i.e., if id_ketua is set in the session)
 if (!isset($_SESSION["id_ketua"])) {
@@ -43,22 +44,28 @@ if ($result_ketua->num_rows > 0) {
 $stmt_ketua->close();
 
 
-// Query untuk mengambil semua data yang diperlukan untuk riwayat terbaru, termasuk pesan lengkap
-// Kali ini mengambil pesan dari 'pesan_kesehatan.pesan' untuk tampilan singkat dan full
+// Query untuk mengambil riwayat terbaru, termasuk data Ketua sendiri dan Anggota
 $sql_riwayat = "
     SELECT
         p.id_pemeriksaan,
         p.tgl,
-        a.nama_anggota,
-        pk.pesan AS pesan_full_dan_singkat -- Mengambil kolom 'pesan' dari pesan_kesehatan
+        -- PERBAIKAN: Gunakan CASE untuk menentukan nama pasien (anggota atau ketua sendiri)
+        CASE
+            WHEN p.id_anggota IS NOT NULL THEN a.nama_anggota
+            ELSE kkt.nama_ketua
+        END AS nama_pasien_display,
+        p.konsultasi AS pesan_konsultasi_pemeriksaan, -- Pesan dari konsultasi pemeriksaan
+        pk.pesan AS pesan_kesehatan_full -- Pesan dari tabel pesan_kesehatan
     FROM
         pemeriksaan p
-    JOIN
+    LEFT JOIN
         anggota a ON p.id_anggota = a.id_anggota
+    LEFT JOIN
+        ketua_karang_taruna kkt ON p.id_ketua = kkt.id_ketua -- Join untuk mendapatkan nama ketua
     LEFT JOIN
         pesan_kesehatan pk ON p.id_pemeriksaan = pk.id_pemeriksaan
     WHERE
-        p.id_ketua = ?
+        p.id_ketua = ? -- Filter data yang relevan dengan Ketua ini (baik sebagai pasien atau pengelola)
     ORDER BY
         p.tgl DESC, p.id_pemeriksaan DESC
     LIMIT 5";
@@ -74,24 +81,27 @@ $result_riwayat = $stmt_riwayat->get_result();
 $all_riwayat_data = []; // Array untuk menyimpan semua data riwayat, termasuk pesan full
 if ($result_riwayat->num_rows > 0) {
   while ($row_riwayat = $result_riwayat->fetch_assoc()) {
-    // Tentukan pesan lengkap: menggunakan pesan dari pesan_kesehatan.pesan, atau fallback ke default
-    $pesan_lengkap_untuk_modal = $row_riwayat['pesan_full_dan_singkat'] ?: "Tidak ada pesan lengkap.";
+    // Tentukan pesan lengkap: prefer pesan_kesehatan_full, fallback ke pesan_konsultasi_pemeriksaan
+    $pesan_lengkap_untuk_modal = $row_riwayat['pesan_kesehatan_full'] ?: $row_riwayat['pesan_konsultasi_pemeriksaan'] ?: "Tidak ada pesan lengkap.";
 
     // Tambahkan ke array untuk JavaScript
     $all_riwayat_data[] = [
       'id_pemeriksaan' => $row_riwayat['id_pemeriksaan'],
-      'nama_anggota' => htmlspecialchars($row_riwayat['nama_anggota']), // Pastikan data aman untuk JS
-      'tanggal_pemeriksaan' => htmlspecialchars(date('d F Y H:i', strtotime($row_riwayat['tgl']))), // Pastikan data aman
-      'pesan_lengkap' => htmlspecialchars($pesan_lengkap_untuk_modal) // Pastikan data aman
+      'nama_anggota' => htmlspecialchars($row_riwayat['nama_pasien_display']), // Gunakan nama pasien yang sudah ditentukan
+      'tanggal_pemeriksaan' => htmlspecialchars(date('d F Y H:i', strtotime($row_riwayat['tgl']))),
+      'pesan_lengkap' => htmlspecialchars($pesan_lengkap_untuk_modal)
     ];
 
     // Format untuk tampilan tabel
     $tanggal = date('d F Y', strtotime($row_riwayat['tgl']));
     $jam = date('H.i', strtotime($row_riwayat['tgl']));
-    $pesan_singkat_display = $row_riwayat['pesan_full_dan_singkat'] ? $row_riwayat['pesan_full_dan_singkat'] : "Tidak ada pesan.";
+    $pesan_singkat_display = $row_riwayat['pesan_kesehatan_full'] ?: $row_riwayat['pesan_konsultasi_pemeriksaan']; // Ambil pesan utama atau konsultasi
+    if (empty($pesan_singkat_display)) {
+      $pesan_singkat_display = "Tidak ada pesan.";
+    }
     // Potong pesan singkat jika terlalu panjang (sesuaikan panjangnya)
     if (strlen($pesan_singkat_display) > 80) {
-      $pesan_singkat_display = substr($pesan_singkat_display, 0, 80) . '...';
+      $pesan_singkat_display = substr(strip_tags($pesan_singkat_display), 0, 80) . '...';
     }
   }
 }
@@ -104,20 +114,31 @@ if ($result_riwayat->num_rows > 0) {
   <title>Dashboard</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
+    html,
     body {
+      height: 100%;
+      /* Penting: html dan body harus mengambil tinggi penuh */
       margin: 0;
       padding: 0;
       overflow-x: hidden;
       background: #F2EBEF;
     }
 
+    .d-flex {
+      min-height: 100vh;
+      /* Pastikan kontainer flex utama minimal setinggi viewport */
+    }
+
     .sidebar {
-      height: 100vh;
+      /* Hapus height: 100vh; agar sidebar memanjang mengikuti konten sibling */
       background-color: white;
       transition: all 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
       color: black;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
       overflow-y: auto;
+      /* Tetap izinkan scroll internal jika konten sidebar sendiri terlalu panjang */
+      min-height: 100%;
+      /* Agar sidebar tidak collapse jika kontennya pendek, tapi tetap mengikuti sibling */
     }
 
     .sidebar.expanded {
@@ -369,6 +390,8 @@ if ($result_riwayat->num_rows > 0) {
       border: 1px solid #ced4da;
       padding: 20px;
       text-align: center;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      /* Added box-shadow for consistency */
     }
 
     .modal-header {
@@ -383,40 +406,35 @@ if ($result_riwayat->num_rows > 0) {
       font-weight: bold;
       font-size: 1.5rem;
       margin-top: 1px;
-      /* Sesuaikan jarak atas title */
     }
 
     .modal-body {
       padding: 10px 0;
-      /* Kurangi padding vertikal */
     }
 
     .modal-footer {
       border-top: none;
       padding: 10px 0 0;
-      /* Kurangi padding vertikal */
       justify-content: center;
     }
 
     .modal-footer .btn-secondary {
-      background-color: #8A70D6;
+      background-color: rgba(178, 124, 223, 1);
       color: white;
       border: none;
       border-radius: 50px;
-      padding: 0.75rem 2rem;
+      padding: 0.5rem 1.5rem;
       font-size: 1rem;
-      transition: background-color 0.3s ease;
+      transition: all 0.3s ease;
     }
 
     .modal-footer .btn-secondary:hover {
-      background-color: #a855f7;
+      background-color: rgba(161, 75, 218, 0.64);
     }
 
-    /* Notification Bell Icon */
     .modal-notification-icon {
       color: #8A70D6;
       font-size: 2rem;
-      /* Ukuran icon */
       margin-bottom: 10px;
     }
   </style>
@@ -502,84 +520,33 @@ if ($result_riwayat->num_rows > 0) {
                   </tr>
                 </thead>
                 <tbody>
-                  <?php
-                  // Query untuk mengambil semua data yang diperlukan untuk riwayat terbaru, termasuk pesan lengkap
-                  // Mengambil pesan dari 'pesan_kesehatan.pesan' untuk tampilan singkat dan full
-                  $sql_riwayat = "
-                                        SELECT
-                                            p.id_pemeriksaan,
-                                            p.tgl,
-                                            a.nama_anggota,
-                                            pk.pesan AS pesan_full_dan_singkat -- Mengambil kolom 'pesan' dari pesan_kesehatan
-                                        FROM
-                                            pemeriksaan p
-                                        JOIN
-                                            anggota a ON p.id_anggota = a.id_anggota
-                                        LEFT JOIN
-                                            pesan_kesehatan pk ON p.id_pemeriksaan = pk.id_pemeriksaan
-                                        WHERE
-                                            p.id_ketua = ?
-                                        ORDER BY
-                                            p.tgl DESC, p.id_pemeriksaan DESC
-                                        LIMIT 5";
-
-                  $stmt_riwayat = $conn->prepare($sql_riwayat);
-                  if ($stmt_riwayat === false) {
-                    die("Error preparing riwayat statement: " . $conn->error);
-                  }
-                  $stmt_riwayat->bind_param("i", $id_ketua_logged_in);
-                  $stmt_riwayat->execute();
-                  $result_riwayat = $stmt_riwayat->get_result();
-
-                  $all_riwayat_data = []; // Array untuk menyimpan semua data riwayat, termasuk pesan full
-                  if ($result_riwayat->num_rows > 0) {
-                    while ($row_riwayat = $result_riwayat->fetch_assoc()) {
-                      // Tentukan pesan lengkap: menggunakan pesan dari pesan_kesehatan.pesan, atau fallback ke default
-                      $pesan_lengkap_untuk_modal = $row_riwayat['pesan_full_dan_singkat'] ?: "Tidak ada pesan lengkap.";
-
-                      // Tambahkan ke array untuk JavaScript
-                      $all_riwayat_data[] = [
-                        'id_pemeriksaan' => $row_riwayat['id_pemeriksaan'],
-                        'nama_anggota' => htmlspecialchars($row_riwayat['nama_anggota']), // Pastikan data aman untuk JS
-                        'tanggal_pemeriksaan' => htmlspecialchars(date('d F Y H:i', strtotime($row_riwayat['tgl']))), // Pastikan data aman
-                        'pesan_lengkap' => htmlspecialchars($pesan_lengkap_untuk_modal) // Pastikan data aman
-                      ];
-
-                      // Format untuk tampilan tabel
-                      $tanggal = date('d F Y', strtotime($row_riwayat['tgl']));
-                      $jam = date('H.i', strtotime($row_riwayat['tgl']));
-                      $pesan_singkat_display = $row_riwayat['pesan_full_dan_singkat'] ? $row_riwayat['pesan_full_dan_singkat'] : "Tidak ada pesan.";
-                      // Potong pesan singkat jika terlalu panjang (sesuaikan panjangnya)
-                      if (strlen($pesan_singkat_display) > 80) {
-                        $pesan_singkat_display = substr($pesan_singkat_display, 0, 80) . '...';
-                      }
-                      ?>
+                  <?php if (!empty($all_riwayat_data)): ?>
+                    <?php foreach ($all_riwayat_data as $riwayat): ?>
                       <tr>
                         <td class="left-info" style="width: 20%;">
-                          <span class="kode">Kode <?php echo htmlspecialchars($row_riwayat['id_pemeriksaan']); ?></span><br>
-                          <?php echo htmlspecialchars($tanggal); ?> <br> <?php echo htmlspecialchars($jam); ?> WIB
+                          <span class="kode">Kode <?php echo htmlspecialchars($riwayat['id_pemeriksaan']); ?></span><br>
+                          <?php echo htmlspecialchars(date('d F Y', strtotime($riwayat['tanggal_pemeriksaan']))); ?> <br>
+                          <?php echo htmlspecialchars(date('H.i', strtotime($riwayat['tanggal_pemeriksaan']))); ?> WIB
                         </td>
                         <td class="middle-info" style="width: 65%;">
-                          <br><?php echo htmlspecialchars($row_riwayat['nama_anggota']); ?>
-                          <br>Pesan Dokter : “<?php echo htmlspecialchars($pesan_singkat_display); ?>”
+                          <br><?php echo htmlspecialchars($riwayat['nama_anggota']); ?>
+                          <br>Pesan Dokter : “<?php echo htmlspecialchars($riwayat['pesan_lengkap']); ?>”
                         </td>
                         <td class="right-info" style="width: 25%;">
                           <br>
                           <button class="btn-view view-message-btn" data-bs-toggle="modal"
                             data-bs-target="#messageDetailModal"
-                            data-id-pemeriksaan="<?php echo htmlspecialchars($row_riwayat['id_pemeriksaan']); ?>">
+                            data-id-pemeriksaan="<?php echo htmlspecialchars($riwayat['id_pemeriksaan']); ?>">
                             Pesan
                           </button>
                         </td>
                       </tr>
-                      <?php
-                    }
-                  } else {
-                    echo '<tr><td colspan="3" style="text-align: center;">Tidak ada riwayat kesehatan terbaru.</td></tr>';
-                  }
-                  // PENTING: Tutup statement setelah loop while
-                  $stmt_riwayat->close();
-                  ?>
+                    <?php endforeach; ?>
+                  <?php else: ?>
+                    <tr>
+                      <td colspan="3" style="text-align: center;">Tidak ada riwayat kesehatan terbaru.</td>
+                    </tr>
+                  <?php endif; ?>
                 </tbody>
               </table>
             </div>
@@ -595,22 +562,18 @@ if ($result_riwayat->num_rows > 0) {
     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
         <div class="modal-body">
+          <h5 class="modal-title" id="messageDetailModalLabel">Detail Pesan Kesehatan</h5>
+          <p class="mt-3"><strong>Anggota:</strong> <span id="modalAnggotaNama"></span></p>
+          <p><strong>Tanggal:</strong> <span id="modalTanggalPemeriksaan"></span></p>
+          <hr>
+          <p id="modalPesanLengkap"></p>
         </div>
-        <h5 class="modal-title" id="messageDetailModalLabel">Detail Pesan Kesehatan</h5>
-        <p class="mt-3"><strong>Anggota:</strong> <span id="modalAnggotaNama"></span></p>
-        <p><strong>Tanggal:</strong> <span id="modalTanggalPemeriksaan"></span></p>
-        <hr>
-        <p id="modalPesanLengkap"></p>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
         </div>
       </div>
     </div>
-  </div>
   </div>
 
 
@@ -626,24 +589,18 @@ if ($result_riwayat->num_rows > 0) {
     }
 
     // Data riwayat yang sudah diambil dari PHP saat halaman dimuat
-    // Menggunakan JSON.parse() untuk mengubah string JSON dari PHP menjadi objek JavaScript
     const allRiwayatData = <?php echo json_encode($all_riwayat_data); ?>;
 
-    // JavaScript untuk menangani modal pesan
     document.addEventListener('DOMContentLoaded', function () {
       var messageDetailModal = document.getElementById('messageDetailModal');
       messageDetailModal.addEventListener('show.bs.modal', function (event) {
-        // Button that triggered the modal
         var button = event.relatedTarget;
-        // Extract info from data-bs-* attributes
         var id_pemeriksaan_to_show = button.getAttribute('data-id-pemeriksaan');
 
-        // Get elements to update
         var modalAnggotaNama = messageDetailModal.querySelector('#modalAnggotaNama');
         var modalTanggalPemeriksaan = messageDetailModal.querySelector('#modalTanggalPemeriksaan');
         var modalPesanLengkap = messageDetailModal.querySelector('#modalPesanLengkap');
 
-        // Cari data yang sesuai di array allRiwayatData
         const foundData = allRiwayatData.find(item => item.id_pemeriksaan == id_pemeriksaan_to_show);
 
         if (foundData) {
@@ -659,10 +616,6 @@ if ($result_riwayat->num_rows > 0) {
     });
   </script>
 </body>
+<?php $conn->close(); ?>
 
 </html>
-<?php
-// Pindahkan penutupan koneksi ke bagian paling akhir script PHP
-// setelah semua HTML dan JavaScript yang bergantung pada data PHP telah di-generate.
-$conn->close();
-?>

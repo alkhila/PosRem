@@ -1,5 +1,6 @@
 <?php
 session_start(); // Mulai sesi
+date_default_timezone_set('Asia/Jakarta');
 
 // Cek apakah pengguna sudah login
 if (!isset($_SESSION["id_ketua"])) {

@@ -1,5 +1,6 @@
 <?php
 session_start(); // Mulai sesi
+date_default_timezone_set('Asia/Jakarta');
 
 // Cek apakah pengguna sudah login
 if (!isset($_SESSION["id_ketua"])) {
@@ -53,8 +54,8 @@ $sql_riwayat_lengkap = "
         p.tekanan_darah,
         p.konsultasi,
         a.nama_anggota,
-        p.id_anggota, -- PERBAIKAN: Tambahkan p.id_anggota
-        pk.pesan AS pesan_full, -- Mengambil pesan dari tabel pesan_kesehatan
+        p.id_anggota,
+        pk.pesan AS pesan_full,
         pt.nama_petugas
     FROM
         pemeriksaan p
@@ -65,9 +66,9 @@ $sql_riwayat_lengkap = "
     LEFT JOIN
         petugas_puskesmas pt ON p.id_petugas = pt.id_petugas
     WHERE
-        p.id_ketua = ? -- Filter berdasarkan Ketua yang login
+        p.id_ketua = ?
     ORDER BY
-        p.tgl DESC, p.id_pemeriksaan DESC"; // Urutkan dari yang terbaru
+        p.tgl DESC, p.id_pemeriksaan DESC";
 
 $stmt_riwayat_lengkap = $conn->prepare($sql_riwayat_lengkap);
 if ($stmt_riwayat_lengkap === false) {
@@ -77,27 +78,23 @@ $stmt_riwayat_lengkap->bind_param("i", $id_ketua_logged_in);
 $stmt_riwayat_lengkap->execute();
 $result_riwayat_lengkap = $stmt_riwayat_lengkap->get_result();
 
-$all_riwayat_data = []; // Array untuk menyimpan semua data riwayat, termasuk detail lengkap untuk JS
+$all_riwayat_data = [];
 if ($result_riwayat_lengkap->num_rows > 0) {
   while ($row = $result_riwayat_lengkap->fetch_assoc()) {
-    // Tentukan siapa yang diperiksa: Anggota atau Ketua itu sendiri (jika id_anggota NULL)
     $nama_yang_diperiksa = $row['nama_anggota'];
-    if (empty($nama_yang_diperiksa) && $row['id_anggota'] === NULL) { // Jika id_anggota NULL, anggap itu data Ketua sendiri
-      $nama_yang_diperiksa = $nama_ketua_sidebar; // Gunakan nama ketua dari sidebar
+    if (empty($nama_yang_diperiksa) && $row['id_anggota'] === NULL) {
+      $nama_yang_diperiksa = $nama_ketua_sidebar;
     }
 
-    // Tentukan pesan untuk tampilan singkat di tabel (jika pesan_full kosong, pakai konsultasi)
-    $pesan_untuk_tabel = $row['pesan_full'] ?: $row['konsultasi']; // Ambil pesan utama atau konsultasi
+    $pesan_untuk_tabel = $row['pesan_full'] ?: $row['konsultasi'];
     if (empty($pesan_untuk_tabel)) {
       $pesan_untuk_tabel = "Tidak ada pesan.";
     }
-    // Potong pesan singkat jika terlalu panjang
     $pesan_singkat_display = $pesan_untuk_tabel;
     if (strlen($pesan_singkat_display) > 80) {
       $pesan_singkat_display = substr(strip_tags($pesan_singkat_display), 0, 80) . '...';
     }
 
-    // Simpan data lengkap untuk modal JavaScript
     $all_riwayat_data[] = [
       'id_pemeriksaan' => $row['id_pemeriksaan'],
       'nama_anggota' => htmlspecialchars($nama_yang_diperiksa),
@@ -110,12 +107,12 @@ if ($result_riwayat_lengkap->num_rows > 0) {
       'nama_petugas' => htmlspecialchars($row['nama_petugas'] ?: 'Tidak ada petugas'),
       'konsultasi' => nl2br(htmlspecialchars($row['konsultasi'] ?: 'Tidak ada konsultasi.')),
       'pesan_full' => nl2br(htmlspecialchars($row['pesan_full'] ?: 'Tidak ada pesan kesehatan.')),
-      'pesan_singkat_tabel' => htmlspecialchars($pesan_singkat_display) // PERBAIKAN: Kunci baru untuk pesan singkat di tabel
+      'pesan_singkat_tabel' => htmlspecialchars($pesan_singkat_display)
     ];
   }
 }
 $stmt_riwayat_lengkap->close();
-$conn->close(); // Tutup koneksi database
+$conn->close();
 ?>
 
 <!DOCTYPE html>
@@ -376,20 +373,17 @@ $conn->close(); // Tutup koneksi database
       padding: 8px 16px;
     }
 
+    /* Styling untuk modal detail kesehatan */
     #healthDetailModal .modal-dialog {
-      /* PERBAIKAN: Atur lebar modal di sini */
-      max-width: 700px;
-      /* Contoh lebar, sesuaikan kebutuhan */
+      max-width: 900px;
     }
 
-    /* Styling untuk modal detail kesehatan */
     #healthDetailModal .modal-content {
       background-color: white;
       border-radius: 15px;
       border: 1px solid #ced4da;
       padding: 20px;
       text-align: center;
-      /* Konten di tengah */
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     }
 
@@ -405,7 +399,7 @@ $conn->close(); // Tutup koneksi database
       font-size: 1.5rem;
       margin-top: 5px;
       margin-bottom: 20px;
-      /* Added margin-bottom for spacing */
+      text-align: center;
     }
 
     #healthDetailModal .modal-body {
@@ -416,32 +410,24 @@ $conn->close(); // Tutup koneksi database
 
     #healthDetailModal .modal-body p {
       margin-bottom: 5px;
-      /* Adjust spacing between lines */
     }
 
     #healthDetailModal .modal-body strong {
       display: inline-block;
       width: 150px;
-      /* Lebar tetap untuk label */
-      text-align: right;
-      /* Label rata kanan */
+      text-align: left;
+      /* PERBAIKAN: Label rata kiri */
       margin-right: 10px;
-      /* Jarak antara label dan nilai */
     }
 
     #healthDetailModal .modal-body span {
-      text-align: left;
-      /* Nilai tetap rata kiri */
       display: inline-block;
-      width: calc(100% - 170px);
-      /* Adjust width to fit */
+      text-align: left;
       vertical-align: top;
-      /* Align with strong tag */
     }
 
     #healthDetailModal .modal-body hr {
       margin: 15px 0;
-      /* Adjusted margin for consistency */
       border-top: 1px solid rgba(0, 0, 0, .1);
     }
 
@@ -583,6 +569,8 @@ $conn->close(); // Tutup koneksi database
     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
+        <div class="modal-header">
+        </div>
         <div class="modal-body">
           <h5 class="modal-title" id="healthDetailModalLabel">Detail Data Kesehatan</h5>
           <div style="text-align: left; padding: 0 20px;">
@@ -643,14 +631,15 @@ $conn->close(); // Tutup koneksi database
         if (foundData) {
           modalHealthNamaAnggota.textContent = foundData.nama_anggota;
           modalHealthTanggal.textContent = foundData.tanggal_pemeriksaan;
-          modalHealthTinggiBadan.textContent = foundData.tinggi_badan;
-          modalHealthBeratBadan.textContent = foundData.berat_badan;
-          modalHealthLingkarKepala.textContent = foundData.lingkar_kepala;
-          modalHealthLingkarPerut.textContent = foundData.lingkar_perut;
-          modalHealthTekananDarah.textContent = foundData.tekanan_darah;
+          // PERBAIKAN: Gabungkan nilai dan unit di JavaScript
+          modalHealthTinggiBadan.textContent = foundData.tinggi_badan + ' cm';
+          modalHealthBeratBadan.textContent = foundData.berat_badan + ' kg';
+          modalHealthLingkarKepala.textContent = foundData.lingkar_kepala + ' cm';
+          modalHealthLingkarPerut.textContent = foundData.lingkar_perut + ' cm';
+          modalHealthTekananDarah.textContent = foundData.tekanan_darah + ' mmHg';
           modalHealthNamaPetugas.textContent = foundData.nama_petugas;
-          modalHealthKonsultasi.innerHTML = foundData.konsultasi; // Gunakan innerHTML karena ada nl2br
-          modalHealthPesanFull.innerHTML = foundData.pesan_full; // Gunakan innerHTML karena ada nl2br
+          modalHealthKonsultasi.innerHTML = foundData.konsultasi;
+          modalHealthPesanFull.innerHTML = foundData.pesan_full;
         } else {
           modalHealthNamaAnggota.textContent = 'Data tidak ditemukan.';
           modalHealthTanggal.textContent = '';
