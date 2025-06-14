@@ -44,28 +44,22 @@ if ($result_ketua->num_rows > 0) {
 $stmt_ketua->close();
 
 
-// Query untuk mengambil riwayat terbaru, termasuk data Ketua sendiri dan Anggota
+// Query untuk mengambil riwayat terbaru HANYA untuk Ketua sendiri
 $sql_riwayat = "
     SELECT
-        p.id_pemeriksaan,
+        p.id_pemeriksaan, -- Tetap ambil ID untuk fungsionalitas modal
         p.tgl,
-        -- PERBAIKAN: Gunakan CASE untuk menentukan nama pasien (anggota atau ketua sendiri)
-        CASE
-            WHEN p.id_anggota IS NOT NULL THEN a.nama_anggota
-            ELSE kkt.nama_ketua
-        END AS nama_pasien_display,
-        p.konsultasi AS pesan_konsultasi_pemeriksaan, -- Pesan dari konsultasi pemeriksaan
-        pk.pesan AS pesan_kesehatan_full -- Pesan dari tabel pesan_kesehatan
+        kkt.nama_ketua AS nama_pasien_display, -- Langsung ambil nama ketua
+        p.konsultasi AS pesan_konsultasi_pemeriksaan,
+        pk.pesan AS pesan_kesehatan_full
     FROM
         pemeriksaan p
-    LEFT JOIN
-        anggota a ON p.id_anggota = a.id_anggota
-    LEFT JOIN
+    JOIN
         ketua_karang_taruna kkt ON p.id_ketua = kkt.id_ketua -- Join untuk mendapatkan nama ketua
     LEFT JOIN
         pesan_kesehatan pk ON p.id_pemeriksaan = pk.id_pemeriksaan
     WHERE
-        p.id_ketua = ? -- Filter data yang relevan dengan Ketua ini (baik sebagai pasien atau pengelola)
+        p.id_anggota IS NULL AND p.id_ketua = ? -- HANYA data Ketua itu sendiri
     ORDER BY
         p.tgl DESC, p.id_pemeriksaan DESC
     LIMIT 5";
@@ -81,25 +75,21 @@ $result_riwayat = $stmt_riwayat->get_result();
 $all_riwayat_data = []; // Array untuk menyimpan semua data riwayat, termasuk pesan full
 if ($result_riwayat->num_rows > 0) {
   while ($row_riwayat = $result_riwayat->fetch_assoc()) {
-    // Tentukan pesan lengkap: prefer pesan_kesehatan_full, fallback ke pesan_konsultasi_pemeriksaan
     $pesan_lengkap_untuk_modal = $row_riwayat['pesan_kesehatan_full'] ?: $row_riwayat['pesan_konsultasi_pemeriksaan'] ?: "Tidak ada pesan lengkap.";
 
-    // Tambahkan ke array untuk JavaScript
     $all_riwayat_data[] = [
       'id_pemeriksaan' => $row_riwayat['id_pemeriksaan'],
-      'nama_anggota' => htmlspecialchars($row_riwayat['nama_pasien_display']), // Gunakan nama pasien yang sudah ditentukan
+      'nama_anggota' => htmlspecialchars($row_riwayat['nama_pasien_display']),
       'tanggal_pemeriksaan' => htmlspecialchars(date('d F Y H:i', strtotime($row_riwayat['tgl']))),
       'pesan_lengkap' => htmlspecialchars($pesan_lengkap_untuk_modal)
     ];
 
-    // Format untuk tampilan tabel
     $tanggal = date('d F Y', strtotime($row_riwayat['tgl']));
     $jam = date('H.i', strtotime($row_riwayat['tgl']));
-    $pesan_singkat_display = $row_riwayat['pesan_kesehatan_full'] ?: $row_riwayat['pesan_konsultasi_pemeriksaan']; // Ambil pesan utama atau konsultasi
+    $pesan_singkat_display = $row_riwayat['pesan_kesehatan_full'] ?: $row_riwayat['pesan_konsultasi_pemeriksaan'];
     if (empty($pesan_singkat_display)) {
       $pesan_singkat_display = "Tidak ada pesan.";
     }
-    // Potong pesan singkat jika terlalu panjang (sesuaikan panjangnya)
     if (strlen($pesan_singkat_display) > 80) {
       $pesan_singkat_display = substr(strip_tags($pesan_singkat_display), 0, 80) . '...';
     }
@@ -130,7 +120,6 @@ if ($result_riwayat->num_rows > 0) {
     }
 
     .sidebar {
-      /* Hapus height: 100vh; agar sidebar memanjang mengikuti konten sibling */
       background-color: white;
       transition: all 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
       color: black;
@@ -355,6 +344,7 @@ if ($result_riwayat->num_rows > 0) {
     }
 
     .middle-info {
+      /* Lebar disesuaikan untuk 3 kolom visual */
       border: 1px solid black;
       border-left: none;
       border-right: none;
@@ -367,6 +357,7 @@ if ($result_riwayat->num_rows > 0) {
     }
 
     .kode {
+      /* Ini tidak lagi digunakan karena kolom kode dihapus dari tampilan */
       color: #8A70D6;
       font-weight: bold;
     }
@@ -391,7 +382,6 @@ if ($result_riwayat->num_rows > 0) {
       padding: 20px;
       text-align: center;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      /* Added box-shadow for consistency */
     }
 
     .modal-header {
@@ -524,7 +514,6 @@ if ($result_riwayat->num_rows > 0) {
                     <?php foreach ($all_riwayat_data as $riwayat): ?>
                       <tr>
                         <td class="left-info" style="width: 20%;">
-                          <span class="kode">Kode <?php echo htmlspecialchars($riwayat['id_pemeriksaan']); ?></span><br>
                           <?php echo htmlspecialchars(date('d F Y', strtotime($riwayat['tanggal_pemeriksaan']))); ?> <br>
                           <?php echo htmlspecialchars(date('H.i', strtotime($riwayat['tanggal_pemeriksaan']))); ?> WIB
                         </td>
@@ -532,8 +521,7 @@ if ($result_riwayat->num_rows > 0) {
                           <br><?php echo htmlspecialchars($riwayat['nama_anggota']); ?>
                           <br>Pesan Dokter : “<?php echo htmlspecialchars($riwayat['pesan_lengkap']); ?>”
                         </td>
-                        <td class="right-info" style="width: 25%;">
-                          <br>
+                        <td class="right-info" style="width: 15%;"> <br>
                           <button class="btn-view view-message-btn" data-bs-toggle="modal"
                             data-bs-target="#messageDetailModal"
                             data-id-pemeriksaan="<?php echo htmlspecialchars($riwayat['id_pemeriksaan']); ?>">
@@ -616,6 +604,10 @@ if ($result_riwayat->num_rows > 0) {
     });
   </script>
 </body>
-<?php $conn->close(); ?>
 
 </html>
+<?php
+// Pindahkan penutupan koneksi ke bagian paling akhir script PHP
+// setelah semua HTML dan JavaScript yang bergantung pada data PHP telah di-generate.
+$conn->close();
+?>

@@ -33,7 +33,7 @@ if ($stmt_nama_ketua === false) {
 }
 $stmt_nama_ketua->bind_param("i", $id_ketua_logged_in);
 $stmt_nama_ketua->execute();
-$result_nama_ketua = $stmt_nama_ketua->get_result();
+$result_nama_ketua = $stmt_nama_ketua->get_result(); // Variabel diperbaiki di sini
 if ($result_nama_ketua->num_rows > 0) {
   $row_nama_ketua = $result_nama_ketua->fetch_assoc();
   $nama_ketua_sidebar = $row_nama_ketua['nama_ketua'];
@@ -41,8 +41,7 @@ if ($result_nama_ketua->num_rows > 0) {
 $stmt_nama_ketua->close();
 
 
-// Query untuk mengambil semua data riwayat kesehatan yang relevan untuk Ketua yang login
-// Termasuk data anggota, detail pemeriksaan, pesan kesehatan, dan nama petugas
+// Query untuk mengambil SEMUA riwayat kesehatan HANYA untuk Ketua sendiri
 $sql_riwayat_lengkap = "
     SELECT
         p.id_pemeriksaan,
@@ -53,12 +52,14 @@ $sql_riwayat_lengkap = "
         p.lingkar_perut,
         p.tekanan_darah,
         p.konsultasi,
-        a.nama_anggota,
+        kkt.nama_ketua AS nama_pasien_display,
         p.id_anggota,
         pk.pesan AS pesan_full,
         pt.nama_petugas
     FROM
         pemeriksaan p
+    JOIN
+        ketua_karang_taruna kkt ON p.id_ketua = kkt.id_ketua
     LEFT JOIN
         anggota a ON p.id_anggota = a.id_anggota
     LEFT JOIN
@@ -66,7 +67,7 @@ $sql_riwayat_lengkap = "
     LEFT JOIN
         petugas_puskesmas pt ON p.id_petugas = pt.id_petugas
     WHERE
-        p.id_ketua = ?
+        p.id_anggota IS NULL AND p.id_ketua = ?
     ORDER BY
         p.tgl DESC, p.id_pemeriksaan DESC";
 
@@ -78,13 +79,10 @@ $stmt_riwayat_lengkap->bind_param("i", $id_ketua_logged_in);
 $stmt_riwayat_lengkap->execute();
 $result_riwayat_lengkap = $stmt_riwayat_lengkap->get_result();
 
-$all_riwayat_data = [];
+$all_riwayat_data = []; // Array untuk menyimpan semua data riwayat, termasuk detail lengkap untuk JS
 if ($result_riwayat_lengkap->num_rows > 0) {
   while ($row = $result_riwayat_lengkap->fetch_assoc()) {
-    $nama_yang_diperiksa = $row['nama_anggota'];
-    if (empty($nama_yang_diperiksa) && $row['id_anggota'] === NULL) {
-      $nama_yang_diperiksa = $nama_ketua_sidebar;
-    }
+    $nama_yang_diperiksa = $row['nama_pasien_display'];
 
     $pesan_untuk_tabel = $row['pesan_full'] ?: $row['konsultasi'];
     if (empty($pesan_untuk_tabel)) {
@@ -112,7 +110,7 @@ if ($result_riwayat_lengkap->num_rows > 0) {
   }
 }
 $stmt_riwayat_lengkap->close();
-$conn->close();
+
 ?>
 
 <!DOCTYPE html>
@@ -126,6 +124,7 @@ $conn->close();
     html,
     body {
       height: 100%;
+      /* Penting: html dan body harus mengambil tinggi penuh */
       margin: 0;
       padding: 0;
       overflow-x: hidden;
@@ -134,6 +133,7 @@ $conn->close();
 
     .d-flex {
       min-height: 100vh;
+      /* Pastikan kontainer flex utama minimal setinggi viewport */
     }
 
     .sidebar {
@@ -142,7 +142,9 @@ $conn->close();
       color: black;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
       overflow-y: auto;
+      /* Tetap izinkan scroll internal jika konten sidebar sendiri terlalu panjang */
       min-height: 100%;
+      /* Agar sidebar tidak collapse jika kontennya pendek, tapi tetap mengikuti sibling */
     }
 
     .sidebar.expanded {
@@ -322,13 +324,11 @@ $conn->close();
       border-right: none;
       padding: 5px;
       text-align: left;
-      /* Default text align */
     }
 
     .table-purple thead th {
       border: none;
       text-align: left;
-      /* Default text align */
       font-weight: bold;
       color: #8A70D6;
     }
@@ -359,13 +359,7 @@ $conn->close();
       border-left: none;
     }
 
-    .kode {
-      color: #8A70D6;
-      font-weight: bold;
-    }
-
     button {
-      /* Default button style, might be overridden by .btn-view */
       background-color: #B57DE4;
       color: white;
       border: none;
@@ -375,7 +369,7 @@ $conn->close();
 
     /* Styling untuk modal detail kesehatan */
     #healthDetailModal .modal-dialog {
-      max-width: 900px;
+      max-width: 550px;
     }
 
     #healthDetailModal .modal-content {
@@ -399,13 +393,11 @@ $conn->close();
       font-size: 1.5rem;
       margin-top: 5px;
       margin-bottom: 20px;
-      text-align: center;
     }
 
     #healthDetailModal .modal-body {
       padding: 10px 20px;
       text-align: left;
-      /* Global text-align for modal body paragraphs */
     }
 
     #healthDetailModal .modal-body p {
@@ -416,7 +408,6 @@ $conn->close();
       display: inline-block;
       width: 150px;
       text-align: left;
-      /* PERBAIKAN: Label rata kiri */
       margin-right: 10px;
     }
 
@@ -430,7 +421,6 @@ $conn->close();
       margin: 15px 0;
       border-top: 1px solid rgba(0, 0, 0, .1);
     }
-
 
     #healthDetailModal .modal-footer {
       border-top: none;
@@ -452,8 +442,6 @@ $conn->close();
     #healthDetailModal .modal-footer .btn-secondary:hover {
       background-color: #a855f7;
     }
-
-    /* Remove any bell icon specific styling if not used */
   </style>
 
 </head>
@@ -518,6 +506,8 @@ $conn->close();
 
       <div class="card">
         <div class="card-body">
+          <h2>Halo, <?php echo htmlspecialchars($nama_ketua_sidebar); ?>!</h2> <br>
+
           <div class="container mt-4">
             <div class="wrapper-table">
               <table class="table-purple">
@@ -533,7 +523,6 @@ $conn->close();
                     <?php foreach ($all_riwayat_data as $riwayat): ?>
                       <tr>
                         <td class="left-info" style="width: 20%;">
-                          <span class="kode">Kode <?php echo htmlspecialchars($riwayat['id_pemeriksaan']); ?></span><br>
                           <?php echo htmlspecialchars(date('d F Y', strtotime($riwayat['tanggal_pemeriksaan']))); ?> <br>
                           <?php echo htmlspecialchars(date('H.i', strtotime($riwayat['tanggal_pemeriksaan']))); ?> WIB
                         </td>
@@ -541,7 +530,7 @@ $conn->close();
                           <br><?php echo htmlspecialchars($riwayat['nama_anggota']); ?>
                           <br>Pesan : “<?php echo htmlspecialchars($riwayat['pesan_singkat_tabel']); ?>”
                         </td>
-                        <td class="right-info" style="width: 25%;">
+                        <td class="right-info" style="width: 15%;">
                           <br>
                           <button class="btn-view view-health-detail-btn" data-bs-toggle="modal"
                             data-bs-target="#healthDetailModal"
@@ -631,7 +620,6 @@ $conn->close();
         if (foundData) {
           modalHealthNamaAnggota.textContent = foundData.nama_anggota;
           modalHealthTanggal.textContent = foundData.tanggal_pemeriksaan;
-          // PERBAIKAN: Gabungkan nilai dan unit di JavaScript
           modalHealthTinggiBadan.textContent = foundData.tinggi_badan + ' cm';
           modalHealthBeratBadan.textContent = foundData.berat_badan + ' kg';
           modalHealthLingkarKepala.textContent = foundData.lingkar_kepala + ' cm';
@@ -658,3 +646,8 @@ $conn->close();
 </body>
 
 </html>
+<?php
+// Pindahkan penutupan koneksi ke bagian paling akhir script PHP
+// setelah semua HTML dan JavaScript yang bergantung pada data PHP telah di-generate.
+$conn->close();
+?>
