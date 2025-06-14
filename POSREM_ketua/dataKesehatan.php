@@ -3,7 +3,7 @@ session_start(); // Mulai sesi
 
 // Cek apakah pengguna sudah login
 if (!isset($_SESSION["id_ketua"])) {
-  header("Location: login_ketua.php"); // Alihkan ke halaman login jika belum login
+  header("Location: login.php"); // Alihkan ke halaman login jika belum login
   exit;
 }
 

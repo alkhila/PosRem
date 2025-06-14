@@ -3,7 +3,7 @@ session_start(); // Mulai sesi
 
 // Cek apakah pengguna sudah login
 if (!isset($_SESSION["id_ketua"])) {
-    header("Location: login_ketua.php"); // Alihkan ke halaman login jika belum login
+    header("Location: login.php"); // Alihkan ke halaman login jika belum login
     exit;
 }
 
@@ -64,8 +64,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $konsultasi = $_POST['konsultasi'] ?? '';
     $selected_petugas_id = $_POST['id_petugas'] ?? '';
 
-    if (empty($tinggi_badan) || empty($berat_badan) || empty($lingkar_kepala) ||
-        empty($lingkar_perut) || empty($tekanan_darah) || empty($selected_petugas_id)) {
+    if (
+        empty($tinggi_badan) || empty($berat_badan) || empty($lingkar_kepala) ||
+        empty($lingkar_perut) || empty($tekanan_darah) || empty($selected_petugas_id)
+    ) {
         $action_message = "<p style='color: red;'>Mohon lengkapi semua data wajib, termasuk memilih Petugas.</p>";
     } else {
         $id_petugas_pemeriksaan = $selected_petugas_id;
@@ -78,7 +80,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($stmt_insert_pemeriksaan === false) {
             $action_message = "<p style='color: red;'>Error preparing statement: " . $conn->error . "</p>";
         } else {
-            $stmt_insert_pemeriksaan->bind_param("iisddddssi",
+            $stmt_insert_pemeriksaan->bind_param(
+                "iisddddssi",
                 $id_anggota_for_pemeriksaan,
                 $id_petugas_pemeriksaan,
                 $tgl_pemeriksaan,
@@ -129,7 +132,8 @@ $conn->close();
     <title>Form Data Kesehatan</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        html, body {
+        html,
+        body {
             height: 100%;
             margin: 0;
             padding: 0;
@@ -447,34 +451,47 @@ $conn->close();
                                         <div class="row mb-3">
                                             <div class="col-md-6">
                                                 <label for="tinggi_badan" class="form-label">Tinggi Badan (cm)</label>
-                                                <input type="number" step="0.1" class="form-control" id="tinggi_badan" name="tinggi_badan" placeholder="e.g., 170.5" required value="<?php echo isset($_POST['tinggi_badan']) ? htmlspecialchars($_POST['tinggi_badan']) : ''; ?>">
+                                                <input type="number" step="0.1" class="form-control" id="tinggi_badan"
+                                                    name="tinggi_badan" placeholder="e.g., 170.5" required
+                                                    value="<?php echo isset($_POST['tinggi_badan']) ? htmlspecialchars($_POST['tinggi_badan']) : ''; ?>">
                                             </div>
                                             <div class="col-md-6">
                                                 <label for="berat_badan" class="form-label">Berat Badan (kg)</label>
-                                                <input type="number" step="0.1" class="form-control" id="berat_badan" name="berat_badan" placeholder="e.g., 65.2" required value="<?php echo isset($_POST['berat_badan']) ? htmlspecialchars($_POST['berat_badan']) : ''; ?>">
+                                                <input type="number" step="0.1" class="form-control" id="berat_badan"
+                                                    name="berat_badan" placeholder="e.g., 65.2" required
+                                                    value="<?php echo isset($_POST['berat_badan']) ? htmlspecialchars($_POST['berat_badan']) : ''; ?>">
                                             </div>
                                         </div>
                                         <div class="row mb-3">
                                             <div class="col-md-6">
-                                                <label for="lingkar_kepala" class="form-label">Lingkar Kepala (cm)</label>
-                                                <input type="number" step="0.1" class="form-control" id="lingkar_kepala" name="lingkar_kepala" placeholder="e.g., 55.0" required value="<?php echo isset($_POST['lingkar_kepala']) ? htmlspecialchars($_POST['lingkar_kepala']) : ''; ?>">
+                                                <label for="lingkar_kepala" class="form-label">Lingkar Kepala
+                                                    (cm)</label>
+                                                <input type="number" step="0.1" class="form-control" id="lingkar_kepala"
+                                                    name="lingkar_kepala" placeholder="e.g., 55.0" required
+                                                    value="<?php echo isset($_POST['lingkar_kepala']) ? htmlspecialchars($_POST['lingkar_kepala']) : ''; ?>">
                                             </div>
                                             <div class="col-md-6">
                                                 <label for="lingkar_perut" class="form-label">Lingkar Perut (cm)</label>
-                                                <input type="number" step="0.1" class="form-control" id="lingkar_perut" name="lingkar_perut" placeholder="e.g., 80.0" required value="<?php echo isset($_POST['lingkar_perut']) ? htmlspecialchars($_POST['lingkar_perut']) : ''; ?>">
+                                                <input type="number" step="0.1" class="form-control" id="lingkar_perut"
+                                                    name="lingkar_perut" placeholder="e.g., 80.0" required
+                                                    value="<?php echo isset($_POST['lingkar_perut']) ? htmlspecialchars($_POST['lingkar_perut']) : ''; ?>">
                                             </div>
                                         </div>
                                         <div class="row mb-3">
                                             <div class="col-md-6">
-                                                <label for="tekanan_darah" class="form-label">Tekanan Darah (mmHg)</label>
-                                                <input type="text" class="form-control" id="tekanan_darah" name="tekanan_darah" placeholder="e.g., 120/80" required value="<?php echo isset($_POST['tekanan_darah']) ? htmlspecialchars($_POST['tekanan_darah']) : ''; ?>">
+                                                <label for="tekanan_darah" class="form-label">Tekanan Darah
+                                                    (mmHg)</label>
+                                                <input type="text" class="form-control" id="tekanan_darah"
+                                                    name="tekanan_darah" placeholder="e.g., 120/80" required
+                                                    value="<?php echo isset($_POST['tekanan_darah']) ? htmlspecialchars($_POST['tekanan_darah']) : ''; ?>">
                                             </div>
                                             <div class="col-md-6">
                                                 <label for="id_petugas" class="form-label">Pilih Petugas</label>
                                                 <select class="form-select" id="id_petugas" name="id_petugas" required>
                                                     <option value="">-- Pilih Petugas --</option>
                                                     <?php foreach ($daftar_petugas as $petugas): ?>
-                                                        <option value="<?php echo htmlspecialchars($petugas['id_petugas']); ?>"
+                                                        <option
+                                                            value="<?php echo htmlspecialchars($petugas['id_petugas']); ?>"
                                                             <?php echo ($selected_petugas_id_prev == $petugas['id_petugas']) ? 'selected' : ''; ?>>
                                                             <?php echo htmlspecialchars($petugas['nama_petugas']); ?>
                                                         </option>
@@ -484,9 +501,11 @@ $conn->close();
                                         </div>
                                         <div class="mb-3">
                                             <label for="konsultasi" class="form-label">Konsultasi Lainnya</label>
-                                            <textarea class="form-control" id="konsultasi" name="konsultasi" rows="4" placeholder="Tulis catatan atau saran konsultasi di sini..."><?php echo isset($_POST['konsultasi']) ? htmlspecialchars($_POST['konsultasi']) : ''; ?></textarea>
+                                            <textarea class="form-control" id="konsultasi" name="konsultasi" rows="4"
+                                                placeholder="Tulis catatan atau saran konsultasi di sini..."><?php echo isset($_POST['konsultasi']) ? htmlspecialchars($_POST['konsultasi']) : ''; ?></textarea>
                                         </div>
-                                        <div class="button-row-form"> <button type="button" class="btn-view" onclick="location.href='dataKesehatan.php'">Kembali</button>
+                                        <div class="button-row-form"> <button type="button" class="btn-view"
+                                                onclick="location.href='dataKesehatan.php'">Kembali</button>
                                             <button class="btn-view" type="submit">Simpan</button>
                                         </div>
                                     </form>
