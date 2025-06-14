@@ -349,13 +349,7 @@ $conn->close(); // Tutup koneksi database
           </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="cetakLaporan.php" class="nav-link">
-            <img src="asset/logo_cetak laporan.png" alt="" width="30px">
-            <span class="sidebar-text">Cetak Laporan</span>
-          </a>
-        </li>
-        <li class="nav-item mb-2">
-          <a href="logout.php" class="nav-link">
+          <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#logoutConfirmModal">
             <img src="asset/logo_keluar.png" alt="" width="30px">
             <span class="sidebar-text">Keluar</span>
           </a>
@@ -433,6 +427,7 @@ $conn->close(); // Tutup koneksi database
       </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
       const sidebar = document.getElementById("sidebar");
       const content = document.getElementById("main-content");
@@ -443,7 +438,7 @@ $conn->close(); // Tutup koneksi database
         content.classList.toggle("collapsed");
       }
     </script>
-
+    <?php include '_logout_modal.php'; ?>
 </body>
 
 </html>

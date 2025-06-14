@@ -488,13 +488,7 @@ $stmt_riwayat_lengkap->close();
           </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="cetakLaporan.php" class="nav-link">
-            <img src="asset/logo_cetak laporan.png" alt="" width="30px">
-            <span class="sidebar-text">Cetak Laporan</span>
-          </a>
-        </li>
-        <li class="nav-item mb-2">
-          <a href="logout.php" class="nav-link">
+          <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#logoutConfirmModal">
             <img src="asset/logo_keluar.png" alt="" width="30px">
             <span class="sidebar-text">Keluar</span>
           </a>
@@ -506,8 +500,6 @@ $stmt_riwayat_lengkap->close();
 
       <div class="card">
         <div class="card-body">
-          <h2>Halo, <?php echo htmlspecialchars($nama_ketua_sidebar); ?>!</h2> <br>
-
           <div class="container mt-4">
             <div class="wrapper-table">
               <table class="table-purple">
@@ -643,6 +635,7 @@ $stmt_riwayat_lengkap->close();
       });
     });
   </script>
+  <?php include '_logout_modal.php'; ?>
 </body>
 
 </html>

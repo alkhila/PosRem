@@ -116,9 +116,9 @@ $conn->close();
     }
 
     input:focus {
-      border-color: #3b82f6;
+      border-color: #8A70D6;
       outline: none;
-      box-shadow: 0 0 0 5px rgba(59, 130, 246, 0.3);
+      box-shadow: 0 0 0 0.25rem rgba(138, 112, 214, 0.25);
     }
 
     .form-footer {
