@@ -1,3 +1,64 @@
+<?php
+session_start(); // Mulai sesi
+
+// Cek apakah pengguna sudah login
+if (!isset($_SESSION["id_ketua"])) {
+  header("Location: login.php"); // Alihkan ke halaman login jika belum login
+  exit;
+}
+
+// Koneksi ke database
+$servername = "localhost"; // Sesuaikan jika host database Anda berbeda
+$username = "root";        // Ganti dengan username database Anda
+$password = "";            // Ganti dengan password database Anda
+$dbname = "posrem";
+
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+// Cek koneksi
+if ($conn->connect_error) {
+  die("Koneksi gagal: " . $conn->connect_error);
+}
+
+// Ambil id_ketua dari sesi
+$id_ketua_logged_in = $_SESSION["id_ketua"];
+
+// Fetch semua data Ketua yang sedang login, termasuk nama Karang Taruna
+$ketua_data = null;
+$sql_ketua_data = "
+    SELECT
+        k.nama_ketua,
+        k.jenis_kelamin_ketua,
+        k.tempat_tanggal_lahir, -- Kolom baru
+        k.umur_ketua,
+        k.no_hp_ketua,
+        k.alamat_rumah, -- Kolom baru
+        kt.nama_kt -- Nama Karang Taruna
+    FROM
+        ketua_karang_taruna k
+    LEFT JOIN
+        karang_taruna kt ON k.id_kt = kt.id_kt
+    WHERE
+        k.id_ketua = ?";
+$stmt_ketua_data = $conn->prepare($sql_ketua_data);
+if ($stmt_ketua_data === false) {
+  die("Error preparing ketua data statement: " . $conn->error);
+}
+$stmt_ketua_data->bind_param("i", $id_ketua_logged_in);
+$stmt_ketua_data->execute();
+$result_ketua_data = $stmt_ketua_data->get_result();
+
+if ($result_ketua_data->num_rows > 0) {
+  $ketua_data = $result_ketua_data->fetch_assoc();
+} else {
+  // Jika data Ketua tidak ditemukan di DB meskipun sudah login (kasus jarang)
+  echo "<script>alert('Data profil Ketua tidak ditemukan.'); window.location.href='logout.php';</script>";
+  exit;
+}
+$stmt_ketua_data->close();
+$conn->close(); // Tutup koneksi database
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -6,20 +67,31 @@
   <title>Data Diri</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
+    html,
     body {
+      height: 100%;
+      /* Penting: html dan body harus mengambil tinggi penuh */
       margin: 0;
       padding: 0;
       overflow-x: hidden;
       background: #F2EBEF;
     }
 
+    .d-flex {
+      min-height: 100vh;
+      /* Pastikan kontainer flex utama minimal setinggi viewport */
+    }
+
     .sidebar {
-      height: 100vh;
+      /* Hapus height: 100vh; agar sidebar memanjang mengikuti konten sibling */
       background-color: white;
       transition: all 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
       color: black;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
       overflow-y: auto;
+      /* Tetap izinkan scroll internal jika konten sidebar sendiri terlalu panjang */
+      min-height: 100%;
+      /* Agar sidebar tidak collapse jika kontennya pendek, tapi tetap mengikuti sibling */
     }
 
     .sidebar.expanded {
@@ -168,11 +240,11 @@
     }
 
     h3 {
-      color: rgba(178, 124, 223, 1);
+      color: #8A70D6;
     }
 
     .tulisanUngu {
-      color: rgba(178, 124, 223, 1);
+      color: #8A70D6;
     }
 
     .info-card {
@@ -187,11 +259,6 @@
       border-radius: 15px;
     }
 
-    form input.form-control {
-      width: 100%;
-      border-radius: 15px;
-    }
-
     .info-card .row>div {
       font-size: 1rem;
       color: #000;
@@ -203,7 +270,6 @@
   <div class="d-flex">
 
     <div id="sidebar" class="sidebar expanded d-flex flex-column align-items-start p-3">
-      <!-- Sidebar -->
       <button class="sidebar-toggle" onclick="toggleSidebar()">
         <div class="sidebar-logo">
           <img src="asset/logo_posrem.png" alt="Logo PosRem" width="40px">
@@ -248,7 +314,7 @@
           </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="" class="nav-link">
+          <a href="logout.php" class="nav-link">
             <img src="asset/logo_keluar.png" alt="" width="30px">
             <span class="sidebar-text">Keluar</span>
           </a>
@@ -256,7 +322,6 @@
       </ul>
     </div>
 
-    <!-- Konten utama -->
     <div id="main-content" class="content">
       <div class="card">
         <div class="card-body">
@@ -275,27 +340,26 @@
                           <p>Tempat, Tanggal Lahir</p>
                           <p>Umur</p>
                           <p>Karang Taruna</p>
-                          <p>Faskes</p>
                           <p>Nomor Telp</p>
                           <p>Alamat Rumah</p>
                         </div>
                       </div>
 
                       <div class="col-6">
-                        <p>Micasa Ackerman</p>
-                        <p>Perempuan</p>
-                        <p>Yogyakarta, 13 Oktober 2005</p>
-                        <p>18</p>
-                        <p>Karang Taruna Demen</p>
-                        <p>Wates 1</p>
-                        <p>0987654321</p>
-                        <p>Jalan Shinganshina Gang Mawar No 81, Yogyakarta </p>
+                        <p><?php echo htmlspecialchars($ketua_data['nama_ketua']); ?></p>
+                        <p><?php echo htmlspecialchars($ketua_data['jenis_kelamin_ketua']); ?></p>
+                        <p><?php echo htmlspecialchars($ketua_data['tempat_tanggal_lahir'] ?: 'Belum diisi'); ?></p>
+                        <p><?php echo htmlspecialchars($ketua_data['umur_ketua']); ?></p>
+                        <p><?php echo htmlspecialchars($ketua_data['nama_kt'] ?: 'Belum terdaftar'); ?></p>
+                        <p><?php echo htmlspecialchars($ketua_data['no_hp_ketua']); ?></p>
+                        <p><?php echo htmlspecialchars($ketua_data['alamat_rumah'] ?: 'Belum diisi'); ?></p>
                       </div>
                     </div>
                   </div>
                   <br>
                   <div class="text-end">
-                    <a href="formEditDataDiri.php"><button class="btn-view">Edit</button></a>
+                    <a href="formEditDataDiri.php?id_ketua=<?php echo htmlspecialchars($id_ketua_logged_in); ?>"><button
+                        class="btn-view">Edit</button></a>
                   </div>
                 </div>
               </div>
