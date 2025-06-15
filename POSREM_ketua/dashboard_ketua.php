@@ -50,14 +50,13 @@ $sql_riwayat = "
         p.id_pemeriksaan, -- Tetap ambil ID untuk fungsionalitas modal
         p.tgl,
         kkt.nama_ketua AS nama_pasien_display, -- Langsung ambil nama ketua
-        p.konsultasi AS pesan_konsultasi_pemeriksaan,
-        pk.pesan AS pesan_kesehatan_full
+        pk.pesan AS pesan_kesehatan_full -- Ambil pesan dari tabel pesan_kesehatan
     FROM
         pemeriksaan p
     JOIN
         ketua_karang_taruna kkt ON p.id_ketua = kkt.id_ketua -- Join untuk mendapatkan nama ketua
     LEFT JOIN
-        pesan_kesehatan pk ON p.id_pemeriksaan = pk.id_pemeriksaan
+        pesan_kesehatan pk ON p.id_pemeriksaan = pk.id_pemeriksaan -- LEFT JOIN ke pesan_kesehatan
     WHERE
         p.id_anggota IS NULL AND p.id_ketua = ? -- HANYA data Ketua itu sendiri
     ORDER BY
@@ -75,7 +74,8 @@ $result_riwayat = $stmt_riwayat->get_result();
 $all_riwayat_data = []; // Array untuk menyimpan semua data riwayat, termasuk pesan full
 if ($result_riwayat->num_rows > 0) {
   while ($row_riwayat = $result_riwayat->fetch_assoc()) {
-    $pesan_lengkap_untuk_modal = $row_riwayat['pesan_kesehatan_full'] ?: $row_riwayat['pesan_konsultasi_pemeriksaan'] ?: "Tidak ada pesan lengkap.";
+    // Prioritaskan pesan dari pesan_kesehatan. Jika kosong, gunakan pesan default.
+    $pesan_lengkap_untuk_modal = !empty($row_riwayat['pesan_kesehatan_full']) ? $row_riwayat['pesan_kesehatan_full'] : "Belum ada tanggapan dari petugas puskesmas.";
 
     $all_riwayat_data[] = [
       'id_pemeriksaan' => $row_riwayat['id_pemeriksaan'],
@@ -83,16 +83,6 @@ if ($result_riwayat->num_rows > 0) {
       'tanggal_pemeriksaan' => htmlspecialchars(date('d F Y H:i', strtotime($row_riwayat['tgl']))),
       'pesan_lengkap' => htmlspecialchars($pesan_lengkap_untuk_modal)
     ];
-
-    $tanggal = date('d F Y', strtotime($row_riwayat['tgl']));
-    $jam = date('H.i', strtotime($row_riwayat['tgl']));
-    $pesan_singkat_display = $row_riwayat['pesan_kesehatan_full'] ?: $row_riwayat['pesan_konsultasi_pemeriksaan'];
-    if (empty($pesan_singkat_display)) {
-      $pesan_singkat_display = "Tidak ada pesan.";
-    }
-    if (strlen($pesan_singkat_display) > 80) {
-      $pesan_singkat_display = substr(strip_tags($pesan_singkat_display), 0, 80) . '...';
-    }
   }
 }
 ?>
@@ -489,8 +479,8 @@ if ($result_riwayat->num_rows > 0) {
 
           <div class="kt-card">
             <h3>Sudah cek kesehatan bulan ini?</h3>
-            <p>Jangan lupa laporan kesehatanmu ya!</p>
-            <a href="cetakLaporan.php"><button class="btn-view">Lapor</button></a>
+            <p>Jangan lupa cek kesehatan ya!</p>
+            <a href="dataKesehatan.php"><button class="btn-view">Cek kesehatan</button></a>
           </div>
 
           <div class="container mt-4">

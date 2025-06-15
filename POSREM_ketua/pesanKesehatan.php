@@ -33,7 +33,7 @@ if ($stmt_nama_ketua === false) {
 }
 $stmt_nama_ketua->bind_param("i", $id_ketua_logged_in);
 $stmt_nama_ketua->execute();
-$result_nama_ketua = $stmt_nama_ketua->get_result(); // Variabel diperbaiki di sini
+$result_nama_ketua = $stmt_nama_ketua->get_result();
 if ($result_nama_ketua->num_rows > 0) {
   $row_nama_ketua = $result_nama_ketua->fetch_assoc();
   $nama_ketua_sidebar = $row_nama_ketua['nama_ketua'];
@@ -51,7 +51,7 @@ $sql_riwayat_lengkap = "
         p.lingkar_kepala,
         p.lingkar_perut,
         p.tekanan_darah,
-        p.konsultasi,
+        p.konsultasi, -- Konsultasi ditambahkan kembali ke SELECT
         kkt.nama_ketua AS nama_pasien_display,
         p.id_anggota,
         pk.pesan AS pesan_full,
@@ -84,11 +84,11 @@ if ($result_riwayat_lengkap->num_rows > 0) {
   while ($row = $result_riwayat_lengkap->fetch_assoc()) {
     $nama_yang_diperiksa = $row['nama_pasien_display'];
 
-    $pesan_untuk_tabel = $row['pesan_full'] ?: $row['konsultasi'];
-    if (empty($pesan_untuk_tabel)) {
-      $pesan_untuk_tabel = "Tidak ada pesan.";
-    }
-    $pesan_singkat_display = $pesan_untuk_tabel;
+    // Logika untuk pesan yang ditampilkan di tabel dan sebagai 'Pesan Kesehatan' di modal
+    // Prioritaskan pesan_full dari pesan_kesehatan. Jika kosong, gunakan pesan default.
+    $pesan_untuk_tabel_dan_modal_pesan_kesehatan = !empty($row['pesan_full']) ? $row['pesan_full'] : "Belum ada tanggapan dari petugas puskesmas.";
+
+    $pesan_singkat_display = $pesan_untuk_tabel_dan_modal_pesan_kesehatan;
     if (strlen($pesan_singkat_display) > 80) {
       $pesan_singkat_display = substr(strip_tags($pesan_singkat_display), 0, 80) . '...';
     }
@@ -103,8 +103,8 @@ if ($result_riwayat_lengkap->num_rows > 0) {
       'lingkar_perut' => htmlspecialchars($row['lingkar_perut']),
       'tekanan_darah' => htmlspecialchars($row['tekanan_darah']),
       'nama_petugas' => htmlspecialchars($row['nama_petugas'] ?: 'Tidak ada petugas'),
-      'konsultasi' => nl2br(htmlspecialchars($row['konsultasi'] ?: 'Tidak ada konsultasi.')),
-      'pesan_full' => nl2br(htmlspecialchars($row['pesan_full'] ?: 'Tidak ada pesan kesehatan.')),
+      'konsultasi' => nl2br(htmlspecialchars($row['konsultasi'] ?: 'Tidak ada konsultasi.')), // Konsultasi ditambahkan kembali di sini
+      'pesan_full_display' => nl2br(htmlspecialchars($pesan_untuk_tabel_dan_modal_pesan_kesehatan)),
       'pesan_singkat_tabel' => htmlspecialchars($pesan_singkat_display)
     ];
   }
@@ -369,7 +369,7 @@ $stmt_riwayat_lengkap->close();
 
     /* Styling untuk modal detail kesehatan */
     #healthDetailModal .modal-dialog {
-      max-width: 550px;
+      max-width: 50%;
     }
 
     #healthDetailModal .modal-content {
@@ -393,6 +393,7 @@ $stmt_riwayat_lengkap->close();
       font-size: 1.5rem;
       margin-top: 5px;
       margin-bottom: 20px;
+      text-align: center;
     }
 
     #healthDetailModal .modal-body {
@@ -520,7 +521,7 @@ $stmt_riwayat_lengkap->close();
                         </td>
                         <td class="middle-info" style="width: 65%;">
                           <br><?php echo htmlspecialchars($riwayat['nama_anggota']); ?>
-                          <br>Pesan : “<?php echo htmlspecialchars($riwayat['pesan_singkat_tabel']); ?>”
+                          <br>Pesan Dokter : “<?php echo htmlspecialchars($riwayat['pesan_singkat_tabel']); ?>”
                         </td>
                         <td class="right-info" style="width: 15%;">
                           <br>
@@ -575,7 +576,6 @@ $stmt_riwayat_lengkap->close();
     </div>
   </div>
 
-
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     const sidebar = document.getElementById("sidebar");
@@ -604,7 +604,7 @@ $stmt_riwayat_lengkap->close();
         var modalHealthLingkarPerut = healthDetailModal.querySelector('#modalHealthLingkarPerut');
         var modalHealthTekananDarah = healthDetailModal.querySelector('#modalHealthTekananDarah');
         var modalHealthNamaPetugas = healthDetailModal.querySelector('#modalHealthNamaPetugas');
-        var modalHealthKonsultasi = healthDetailModal.querySelector('#modalHealthKonsultasi');
+        var modalHealthKonsultasi = healthDetailModal.querySelector('#modalHealthKonsultasi'); // Mendapatkan elemen untuk konsultasi
         var modalHealthPesanFull = healthDetailModal.querySelector('#modalHealthPesanFull');
 
         const foundData = allRiwayatData.find(item => item.id_pemeriksaan == id_pemeriksaan_to_show);
@@ -618,8 +618,8 @@ $stmt_riwayat_lengkap->close();
           modalHealthLingkarPerut.textContent = foundData.lingkar_perut + ' cm';
           modalHealthTekananDarah.textContent = foundData.tekanan_darah + ' mmHg';
           modalHealthNamaPetugas.textContent = foundData.nama_petugas;
-          modalHealthKonsultasi.innerHTML = foundData.konsultasi;
-          modalHealthPesanFull.innerHTML = foundData.pesan_full;
+          modalHealthKonsultasi.innerHTML = foundData.konsultasi; // Mengisi data konsultasi
+          modalHealthPesanFull.innerHTML = foundData.pesan_full_display;
         } else {
           modalHealthNamaAnggota.textContent = 'Data tidak ditemukan.';
           modalHealthTanggal.textContent = '';
@@ -629,7 +629,7 @@ $stmt_riwayat_lengkap->close();
           modalHealthLingkarPerut.textContent = '';
           modalHealthTekananDarah.textContent = '';
           modalHealthNamaPetugas.textContent = '';
-          modalHealthKonsultasi.textContent = '';
+          modalHealthKonsultasi.textContent = ''; // Kosongkan jika data tidak ditemukan
           modalHealthPesanFull.textContent = '';
         }
       });
