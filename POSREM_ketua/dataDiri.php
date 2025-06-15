@@ -1,29 +1,24 @@
 <?php
-session_start(); // Mulai sesi
+session_start();
 
-// Cek apakah pengguna sudah login
 if (!isset($_SESSION["id_ketua"])) {
-  header("Location: login.php"); // Alihkan ke halaman login jika belum login
+  header("Location: login.php");
   exit;
 }
 
-// Koneksi ke database
-$servername = "localhost"; // Sesuaikan jika host database Anda berbeda
-$username = "root";        // Ganti dengan username database Anda
-$password = "";            // Ganti dengan password database Anda
+$servername = "localhost";
+$username = "root";
+$password = "";
 $dbname = "posrem";
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 
-// Cek koneksi
 if ($conn->connect_error) {
   die("Koneksi gagal: " . $conn->connect_error);
 }
 
-// Ambil id_ketua dari sesi
 $id_ketua_logged_in = $_SESSION["id_ketua"];
 
-// Fetch semua data Ketua yang sedang login, termasuk nama Karang Taruna
 $ketua_data = null;
 $sql_ketua_data = "
     SELECT
@@ -51,12 +46,11 @@ $result_ketua_data = $stmt_ketua_data->get_result();
 if ($result_ketua_data->num_rows > 0) {
   $ketua_data = $result_ketua_data->fetch_assoc();
 } else {
-  // Jika data Ketua tidak ditemukan di DB meskipun sudah login (kasus jarang)
   echo "<script>alert('Data profil Ketua tidak ditemukan.'); window.location.href='logout.php';</script>";
   exit;
 }
 $stmt_ketua_data->close();
-$conn->close(); // Tutup koneksi database
+$conn->close();
 ?>
 
 <!DOCTYPE html>
@@ -70,7 +64,6 @@ $conn->close(); // Tutup koneksi database
     html,
     body {
       height: 100%;
-      /* Penting: html dan body harus mengambil tinggi penuh */
       margin: 0;
       padding: 0;
       overflow-x: hidden;
@@ -79,19 +72,15 @@ $conn->close(); // Tutup koneksi database
 
     .d-flex {
       min-height: 100vh;
-      /* Pastikan kontainer flex utama minimal setinggi viewport */
     }
 
     .sidebar {
-      /* Hapus height: 100vh; agar sidebar memanjang mengikuti konten sibling */
       background-color: white;
       transition: all 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
       color: black;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
       overflow-y: auto;
-      /* Tetap izinkan scroll internal jika konten sidebar sendiri terlalu panjang */
       min-height: 100%;
-      /* Agar sidebar tidak collapse jika kontennya pendek, tapi tetap mengikuti sibling */
     }
 
     .sidebar.expanded {

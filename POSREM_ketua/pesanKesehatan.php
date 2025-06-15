@@ -1,30 +1,25 @@
 <?php
-session_start(); // Mulai sesi
+session_start();
 date_default_timezone_set('Asia/Jakarta');
 
-// Cek apakah pengguna sudah login
 if (!isset($_SESSION["id_ketua"])) {
-  header("Location: login.php"); // Alihkan ke halaman login jika belum login
+  header("Location: login.php");
   exit;
 }
 
-// Koneksi ke database
-$servername = "localhost"; // Sesuaikan jika host database Anda berbeda
-$username = "root";        // Ganti dengan username database Anda
-$password = "";            // Ganti dengan password database Anda
+$servername = "localhost";
+$username = "root";
+$password = "";
 $dbname = "posrem";
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 
-// Cek koneksi
 if ($conn->connect_error) {
   die("Koneksi gagal: " . $conn->connect_error);
 }
 
-// Ambil id_ketua dari sesi
 $id_ketua_logged_in = $_SESSION["id_ketua"];
 
-// Fetch nama ketua untuk ditampilkan di sidebar
 $nama_ketua_sidebar = "Ketua";
 $sql_nama_ketua = "SELECT nama_ketua FROM ketua_karang_taruna WHERE id_ketua = ?";
 $stmt_nama_ketua = $conn->prepare($sql_nama_ketua);
@@ -41,7 +36,6 @@ if ($result_nama_ketua->num_rows > 0) {
 $stmt_nama_ketua->close();
 
 
-// Query untuk mengambil SEMUA riwayat kesehatan HANYA untuk Ketua sendiri
 $sql_riwayat_lengkap = "
     SELECT
         p.id_pemeriksaan,
@@ -79,13 +73,11 @@ $stmt_riwayat_lengkap->bind_param("i", $id_ketua_logged_in);
 $stmt_riwayat_lengkap->execute();
 $result_riwayat_lengkap = $stmt_riwayat_lengkap->get_result();
 
-$all_riwayat_data = []; // Array untuk menyimpan semua data riwayat, termasuk detail lengkap untuk JS
+$all_riwayat_data = [];
 if ($result_riwayat_lengkap->num_rows > 0) {
   while ($row = $result_riwayat_lengkap->fetch_assoc()) {
     $nama_yang_diperiksa = $row['nama_pasien_display'];
 
-    // Logika untuk pesan yang ditampilkan di tabel dan sebagai 'Pesan Kesehatan' di modal
-    // Prioritaskan pesan_full dari pesan_kesehatan. Jika kosong, gunakan pesan default.
     $pesan_untuk_tabel_dan_modal_pesan_kesehatan = !empty($row['pesan_full']) ? $row['pesan_full'] : "Belum ada tanggapan dari petugas puskesmas.";
 
     $pesan_singkat_display = $pesan_untuk_tabel_dan_modal_pesan_kesehatan;
@@ -103,7 +95,7 @@ if ($result_riwayat_lengkap->num_rows > 0) {
       'lingkar_perut' => htmlspecialchars($row['lingkar_perut']),
       'tekanan_darah' => htmlspecialchars($row['tekanan_darah']),
       'nama_petugas' => htmlspecialchars($row['nama_petugas'] ?: 'Tidak ada petugas'),
-      'konsultasi' => nl2br(htmlspecialchars($row['konsultasi'] ?: 'Tidak ada konsultasi.')), // Konsultasi ditambahkan kembali di sini
+      'konsultasi' => nl2br(htmlspecialchars($row['konsultasi'] ?: 'Tidak ada konsultasi.')),
       'pesan_full_display' => nl2br(htmlspecialchars($pesan_untuk_tabel_dan_modal_pesan_kesehatan)),
       'pesan_singkat_tabel' => htmlspecialchars($pesan_singkat_display)
     ];
@@ -124,7 +116,6 @@ $stmt_riwayat_lengkap->close();
     html,
     body {
       height: 100%;
-      /* Penting: html dan body harus mengambil tinggi penuh */
       margin: 0;
       padding: 0;
       overflow-x: hidden;
@@ -133,7 +124,6 @@ $stmt_riwayat_lengkap->close();
 
     .d-flex {
       min-height: 100vh;
-      /* Pastikan kontainer flex utama minimal setinggi viewport */
     }
 
     .sidebar {
@@ -142,9 +132,7 @@ $stmt_riwayat_lengkap->close();
       color: black;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
       overflow-y: auto;
-      /* Tetap izinkan scroll internal jika konten sidebar sendiri terlalu panjang */
       min-height: 100%;
-      /* Agar sidebar tidak collapse jika kontennya pendek, tapi tetap mengikuti sibling */
     }
 
     .sidebar.expanded {
@@ -367,7 +355,6 @@ $stmt_riwayat_lengkap->close();
       padding: 8px 16px;
     }
 
-    /* Styling untuk modal detail kesehatan */
     #healthDetailModal .modal-dialog {
       max-width: 50%;
     }
@@ -587,7 +574,6 @@ $stmt_riwayat_lengkap->close();
       content.classList.toggle("collapsed");
     }
 
-    // Data riwayat lengkap yang sudah diambil dari PHP saat halaman dimuat
     const allRiwayatData = <?php echo json_encode($all_riwayat_data); ?>;
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -604,7 +590,7 @@ $stmt_riwayat_lengkap->close();
         var modalHealthLingkarPerut = healthDetailModal.querySelector('#modalHealthLingkarPerut');
         var modalHealthTekananDarah = healthDetailModal.querySelector('#modalHealthTekananDarah');
         var modalHealthNamaPetugas = healthDetailModal.querySelector('#modalHealthNamaPetugas');
-        var modalHealthKonsultasi = healthDetailModal.querySelector('#modalHealthKonsultasi'); // Mendapatkan elemen untuk konsultasi
+        var modalHealthKonsultasi = healthDetailModal.querySelector('#modalHealthKonsultasi');
         var modalHealthPesanFull = healthDetailModal.querySelector('#modalHealthPesanFull');
 
         const foundData = allRiwayatData.find(item => item.id_pemeriksaan == id_pemeriksaan_to_show);
@@ -618,7 +604,7 @@ $stmt_riwayat_lengkap->close();
           modalHealthLingkarPerut.textContent = foundData.lingkar_perut + ' cm';
           modalHealthTekananDarah.textContent = foundData.tekanan_darah + ' mmHg';
           modalHealthNamaPetugas.textContent = foundData.nama_petugas;
-          modalHealthKonsultasi.innerHTML = foundData.konsultasi; // Mengisi data konsultasi
+          modalHealthKonsultasi.innerHTML = foundData.konsultasi;
           modalHealthPesanFull.innerHTML = foundData.pesan_full_display;
         } else {
           modalHealthNamaAnggota.textContent = 'Data tidak ditemukan.';
@@ -629,7 +615,7 @@ $stmt_riwayat_lengkap->close();
           modalHealthLingkarPerut.textContent = '';
           modalHealthTekananDarah.textContent = '';
           modalHealthNamaPetugas.textContent = '';
-          modalHealthKonsultasi.textContent = ''; // Kosongkan jika data tidak ditemukan
+          modalHealthKonsultasi.textContent = '';
           modalHealthPesanFull.textContent = '';
         }
       });
@@ -640,7 +626,6 @@ $stmt_riwayat_lengkap->close();
 
 </html>
 <?php
-// Pindahkan penutupan koneksi ke bagian paling akhir script PHP
-// setelah semua HTML dan JavaScript yang bergantung pada data PHP telah di-generate.
+
 $conn->close();
 ?>

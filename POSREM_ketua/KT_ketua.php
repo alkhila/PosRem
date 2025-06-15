@@ -1,29 +1,24 @@
 <?php
-session_start(); // Mulai sesi
+session_start();
 
-// Cek apakah pengguna sudah login (Ketua)
 if (!isset($_SESSION["id_ketua"])) {
-  header("Location: login.php"); // Alihkan ke halaman login jika belum login
+  header("Location: login.php");
   exit;
 }
 
-// Koneksi ke database
-$servername = "localhost"; // Sesuaikan jika host database Anda berbeda
-$username = "root";        // Ganti dengan username database Anda
-$password = "";            // Ganti dengan password database Anda
+$servername = "localhost";
+$username = "root";
+$password = "";
 $dbname = "posrem";
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 
-// Cek koneksi
 if ($conn->connect_error) {
   die("Koneksi gagal: " . $conn->connect_error);
 }
 
-// Ambil id_ketua dari sesi
 $id_ketua_logged_in = $_SESSION["id_ketua"];
 
-// 1. Ambil ID Karang Taruna (id_kt) yang terkait dengan Ketua yang sedang login
 $sql_get_id_kt = "SELECT id_kt FROM ketua_karang_taruna WHERE id_ketua = ?";
 $stmt_get_id_kt = $conn->prepare($sql_get_id_kt);
 if ($stmt_get_id_kt === false) {
@@ -43,7 +38,6 @@ $stmt_get_id_kt->close();
 $nama_karang_taruna = "N/A";
 $alamat_karang_taruna = "N/A";
 
-// 2. Jika id_kt ditemukan, ambil detail Karang Taruna
 if ($id_kt_ketua !== null) {
   $sql_get_karang_taruna = "SELECT nama_kt, alamat FROM karang_taruna WHERE id_kt = ?";
   $stmt_get_karang_taruna = $conn->prepare($sql_get_karang_taruna);
@@ -61,15 +55,11 @@ if ($id_kt_ketua !== null) {
   }
   $stmt_get_karang_taruna->close();
 } else {
-  // Jika Ketua tidak terkait dengan Karang Taruna, berikan pesan default atau kosong
   $nama_karang_taruna = "Belum ada Karang Taruna terkait";
   $alamat_karang_taruna = "Silakan hubungi administrator";
 }
 
-
-// --- Ini adalah kode yang sama dengan dashboard_ketua.php untuk nama di sidebar ---
-// Fetch nama ketua untuk ditampilkan di sidebar
-$nama_ketua_sidebar = "Ketua"; // Default
+$nama_ketua_sidebar = "Ketua";
 $sql_nama_ketua = "SELECT nama_ketua FROM ketua_karang_taruna WHERE id_ketua = ?";
 $stmt_nama_ketua = $conn->prepare($sql_nama_ketua);
 if ($stmt_nama_ketua === false) {
@@ -83,9 +73,8 @@ if ($result_nama_ketua->num_rows > 0) {
   $nama_ketua_sidebar = $row_nama_ketua['nama_ketua'];
 }
 $stmt_nama_ketua->close();
-// --- Akhir kode nama sidebar ---
 
-$conn->close(); // Tutup koneksi database
+$conn->close();
 ?>
 
 <!DOCTYPE html>

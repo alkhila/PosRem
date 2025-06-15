@@ -1,29 +1,24 @@
 <?php
-session_start(); // Mulai sesi
+session_start();
 
-// Cek apakah pengguna sudah login
 if (!isset($_SESSION["id_ketua"])) {
-  header("Location: login.php"); // Alihkan ke halaman login jika belum login
+  header("Location: login.php");
   exit;
 }
 
-// Koneksi ke database
-$servername = "localhost"; // Sesuaikan jika host database Anda berbeda
-$username = "root";        // Ganti dengan username database Anda
-$password = "";            // Ganti dengan password database Anda
+$servername = "localhost";
+$username = "root";
+$password = "";
 $dbname = "posrem";
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 
-// Cek koneksi
 if ($conn->connect_error) {
   die("Koneksi gagal: " . $conn->connect_error);
 }
 
-// Ambil id_ketua dari sesi (ini adalah ID Ketua yang sedang login)
 $id_ketua_logged_in = $_SESSION["id_ketua"];
 
-// 1. Fetch data Ketua yang sedang login untuk ditampilkan di "Informasi Diri"
 $nama_ketua_display = "N/A";
 $jenis_kelamin_ketua_display = "N/A";
 $umur_ketua_display = "N/A";
@@ -47,9 +42,8 @@ if ($result_ketua_info->num_rows > 0) {
 }
 $stmt_ketua_info->close();
 
-// 2. Fetch data kesehatan Ketua dari tabel 'pemeriksaan'
-// Mencari data di mana id_anggota adalah NULL dan id_ketua cocok dengan Ketua yang login
-$health_data = null; // Akan menyimpan data kesehatan terbaru jika ditemukan
+
+$health_data = null;
 $sql_health_data = "
     SELECT
         p.tinggi_badan,
@@ -67,7 +61,7 @@ $sql_health_data = "
         p.id_anggota IS NULL AND p.id_ketua = ?
     ORDER BY
         p.tgl DESC
-    LIMIT 1"; // Ambil data paling baru
+    LIMIT 1";
 
 $stmt_health_data = $conn->prepare($sql_health_data);
 if ($stmt_health_data === false) {
@@ -82,7 +76,7 @@ if ($result_health_data->num_rows > 0) {
 }
 $stmt_health_data->close();
 
-$conn->close(); // Tutup koneksi database
+$conn->close();
 ?>
 
 <!DOCTYPE html>
@@ -96,7 +90,6 @@ $conn->close(); // Tutup koneksi database
     html,
     body {
       height: 100%;
-      /* Penting: html dan body harus mengambil tinggi penuh */
       margin: 0;
       padding: 0;
       overflow-x: hidden;
@@ -105,20 +98,15 @@ $conn->close(); // Tutup koneksi database
 
     .d-flex {
       min-height: 100vh;
-      /* Pastikan kontainer flex utama minimal setinggi viewport */
-      /* Flex items di dalamnya akan memanjang secara default */
     }
 
     .sidebar {
-      /* Hapus height: 100vh; agar sidebar memanjang mengikuti konten sibling */
       background-color: white;
       transition: all 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
       color: black;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
       overflow-y: auto;
-      /* Tetap izinkan scroll internal jika konten sidebar sendiri terlalu panjang */
       min-height: 100%;
-      /* Agar sidebar tidak collapse jika kontennya pendek, tapi tetap mengikuti sibling */
     }
 
     .sidebar.expanded {
@@ -386,7 +374,7 @@ $conn->close(); // Tutup koneksi database
                 <div class="info-card">
                   <div class="card p-3">
                     <h5><strong>Data Kesehatan</strong></h5>
-                    <?php if ($health_data): // Jika ada data kesehatan ?>
+                    <?php if ($health_data): ?>
                       <div class="row mt-3">
                         <div class="col-6">
                           <p>Tinggi Badan</p>
@@ -409,7 +397,7 @@ $conn->close(); // Tutup koneksi database
                         </div>
                       </div>
                       <br>
-                    <?php else: // Jika tidak ada data kesehatan ?>
+                    <?php else: ?>
                       <div class="no-data-message">
                         <p>Belum ada data kesehatan tercatat.</p>
                         <p>Silakan <a href="formDK_ketua.php">mengisi data kesehatan</a> Anda.</p>

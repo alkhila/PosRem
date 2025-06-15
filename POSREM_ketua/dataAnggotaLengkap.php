@@ -1,37 +1,29 @@
 <?php
-session_start(); // Mulai sesi
+session_start();
 
-// Cek apakah pengguna sudah login (Ketua)
 if (!isset($_SESSION["id_ketua"])) {
-  header("Location: login.php"); // Alihkan ke halaman login jika belum login
+  header("Location: login.php");
   exit;
 }
 
-// 1. Cek apakah id_anggota diberikan melalui URL
 if (!isset($_GET['id_anggota']) || !is_numeric($_GET['id_anggota'])) {
-  // Jika id_anggota tidak valid, alihkan kembali ke halaman daftar anggota
   echo "<script>alert('ID Anggota tidak valid atau tidak ditemukan.'); window.location.href='KT_ketua.php';</script>";
   exit;
 }
 
-// Ambil id_anggota dari URL
 $id_anggota_yang_dipilih = $_GET['id_anggota'];
 
-// Koneksi ke database
-$servername = "localhost"; // Sesuaikan jika host database Anda berbeda
-$username = "root";        // Ganti dengan username database Anda
-$password = "";            // Ganti dengan password database Anda
+$servername = "localhost";
+$username = "root";
+$password = "";
 $dbname = "posrem";
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 
-// Cek koneksi
 if ($conn->connect_error) {
   die("Koneksi gagal: " . $conn->connect_error);
 }
 
-// Query untuk mengambil data anggota berdasarkan id_anggota
-// Kolom yang diambil: nama_anggota, jenis_kelamin_anggota, umur_anggota, no_hp_anggota, usn_anggota, pass_anggota
 $sql_anggota_detail = "SELECT nama_anggota, jenis_kelamin_anggota, umur_anggota, no_hp_anggota, usn_anggota, pass_anggota FROM anggota WHERE id_anggota = ?";
 $stmt_anggota_detail = $conn->prepare($sql_anggota_detail);
 
@@ -47,13 +39,12 @@ $data_anggota = null;
 if ($result_anggota_detail->num_rows > 0) {
   $data_anggota = $result_anggota_detail->fetch_assoc();
 } else {
-  // Jika data anggota tidak ditemukan, alihkan kembali atau tampilkan pesan error
   echo "<script>alert('Data anggota tidak ditemukan.'); window.location.href='KT_ketua.php';</script>";
   exit;
 }
 
 $stmt_anggota_detail->close();
-$conn->close(); // Tutup koneksi setelah data diambil
+$conn->close();
 ?>
 
 <!DOCTYPE html>

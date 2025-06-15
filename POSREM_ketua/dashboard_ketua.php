@@ -1,32 +1,25 @@
 <?php
-session_start(); // Start the session at the very beginning of the script
-date_default_timezone_set('Asia/Jakarta'); // PERBAIKAN: Atur zona waktu PHP
+session_start();
+date_default_timezone_set('Asia/Jakarta');
 
-// Check if the user is logged in (i.e., if id_ketua is set in the session)
 if (!isset($_SESSION["id_ketua"])) {
-  // If not logged in, redirect to the login page
-  header("Location: login.php"); // Make sure this path is correct for your login file
+  header("Location: login.php");
   exit;
 }
 
-// Database connection details
-$servername = "localhost"; // Or your database host
-$username = "root";        // Your database username
-$password = "";            // Your database password
+$servername = "localhost";
+$username = "root";
+$password = "";
 $dbname = "posrem";
 
-// Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);
 
-// Check connection
 if ($conn->connect_error) {
   die("Koneksi gagal: " . $conn->connect_error);
 }
 
-// Get the logged-in ketua's ID from the session
 $id_ketua_logged_in = $_SESSION["id_ketua"];
 
-// Fetch ketua_karang_taruna data for the logged-in user
 $sql_ketua = "SELECT nama_ketua FROM ketua_karang_taruna WHERE id_ketua = ?";
 $stmt_ketua = $conn->prepare($sql_ketua);
 if ($stmt_ketua === false) {
@@ -36,7 +29,7 @@ $stmt_ketua->bind_param("i", $id_ketua_logged_in);
 $stmt_ketua->execute();
 $result_ketua = $stmt_ketua->get_result();
 
-$nama_ketua = "Guest"; // Default name
+$nama_ketua = "Guest";
 if ($result_ketua->num_rows > 0) {
   $row_ketua = $result_ketua->fetch_assoc();
   $nama_ketua = $row_ketua['nama_ketua'];
@@ -44,7 +37,6 @@ if ($result_ketua->num_rows > 0) {
 $stmt_ketua->close();
 
 
-// Query untuk mengambil riwayat terbaru HANYA untuk Ketua sendiri
 $sql_riwayat = "
     SELECT
         p.id_pemeriksaan, -- Tetap ambil ID untuk fungsionalitas modal
@@ -71,10 +63,9 @@ $stmt_riwayat->bind_param("i", $id_ketua_logged_in);
 $stmt_riwayat->execute();
 $result_riwayat = $stmt_riwayat->get_result();
 
-$all_riwayat_data = []; // Array untuk menyimpan semua data riwayat, termasuk pesan full
+$all_riwayat_data = [];
 if ($result_riwayat->num_rows > 0) {
   while ($row_riwayat = $result_riwayat->fetch_assoc()) {
-    // Prioritaskan pesan dari pesan_kesehatan. Jika kosong, gunakan pesan default.
     $pesan_lengkap_untuk_modal = !empty($row_riwayat['pesan_kesehatan_full']) ? $row_riwayat['pesan_kesehatan_full'] : "Belum ada tanggapan dari petugas puskesmas.";
 
     $all_riwayat_data[] = [
@@ -97,7 +88,6 @@ if ($result_riwayat->num_rows > 0) {
     html,
     body {
       height: 100%;
-      /* Penting: html dan body harus mengambil tinggi penuh */
       margin: 0;
       padding: 0;
       overflow-x: hidden;
@@ -106,7 +96,6 @@ if ($result_riwayat->num_rows > 0) {
 
     .d-flex {
       min-height: 100vh;
-      /* Pastikan kontainer flex utama minimal setinggi viewport */
     }
 
     .sidebar {
@@ -115,9 +104,7 @@ if ($result_riwayat->num_rows > 0) {
       color: black;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
       overflow-y: auto;
-      /* Tetap izinkan scroll internal jika konten sidebar sendiri terlalu panjang */
       min-height: 100%;
-      /* Agar sidebar tidak collapse jika kontennya pendek, tapi tetap mengikuti sibling */
     }
 
     .sidebar.expanded {
@@ -334,7 +321,6 @@ if ($result_riwayat->num_rows > 0) {
     }
 
     .middle-info {
-      /* Lebar disesuaikan untuk 3 kolom visual */
       border: 1px solid black;
       border-left: none;
       border-right: none;
@@ -347,12 +333,10 @@ if ($result_riwayat->num_rows > 0) {
     }
 
     .kode {
-      /* Ini tidak lagi digunakan karena kolom kode dihapus dari tampilan */
       color: #8A70D6;
       font-weight: bold;
     }
 
-    /* Styling untuk modal (pop-up) */
     .modal-dialog-centered {
       display: flex;
       align-items: center;

@@ -1,21 +1,18 @@
 <?php
-session_start(); // Mulai sesi
+session_start();
 
-// Cek apakah pengguna sudah login (Ketua)
 if (!isset($_SESSION["id_ketua"])) {
-  header("Location: login.php"); // Alihkan ke halaman login jika belum login
+  header("Location: login.php");
   exit;
 }
 
-// Koneksi ke database
-$servername = "localhost"; // Sesuaikan jika host database Anda berbeda
-$username = "root";        // Ganti dengan username database Anda
-$password = "";            // Ganti dengan password database Anda
+$servername = "localhost";
+$username = "root";
+$password = "";
 $dbname = "posrem";
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 
-// Cek koneksi
 if ($conn->connect_error) {
   die("Koneksi gagal: " . $conn->connect_error);
 }
@@ -25,23 +22,21 @@ $data_anggota = [
   'id_anggota' => '',
   'nama_anggota' => '',
   'umur_anggota' => '',
-  'jenis_kelamin_anggota' => '', // Default kosong untuk dropdown
+  'jenis_kelamin_anggota' => '',
   'no_hp_anggota' => '',
   'usn_anggota' => '',
-  'pass_anggota' => '' // Akan diisi jika fetch
+  'pass_anggota' => ''
 ];
 $form_title = "Tambah Data Anggota";
 $submit_button_text = "Daftar";
 $action_message = "";
 
-// 1. Logika untuk Mode Edit (jika ada id_anggota di URL)
 if (isset($_GET['id_anggota']) && is_numeric($_GET['id_anggota'])) {
   $is_edit_mode = true;
   $data_anggota['id_anggota'] = $_GET['id_anggota'];
   $form_title = "Edit Data Anggota";
   $submit_button_text = "Simpan Perubahan";
 
-  // Ambil data anggota dari database
   $sql_fetch_anggota = "SELECT id_anggota, nama_anggota, umur_anggota, jenis_kelamin_anggota, no_hp_anggota, usn_anggota, pass_anggota FROM anggota WHERE id_anggota = ?";
   $stmt_fetch_anggota = $conn->prepare($sql_fetch_anggota);
   if ($stmt_fetch_anggota === false) {
@@ -54,47 +49,40 @@ if (isset($_GET['id_anggota']) && is_numeric($_GET['id_anggota'])) {
   if ($result_fetch_anggota->num_rows > 0) {
     $data_anggota = $result_fetch_anggota->fetch_assoc();
   } else {
-    // Anggota tidak ditemukan, mungkin ID salah atau dihapus
     echo "<script>alert('Data anggota tidak ditemukan.'); window.location.href='KT_ketua.php';</script>";
     exit;
   }
   $stmt_fetch_anggota->close();
 }
 
-// 2. Logika untuk Pengiriman Form (POST request)
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-  // Ambil data dari form
   $nama_lengkap = trim($_POST['namalengkap']);
   $umur = trim($_POST['umur']);
-  $jenis_kelamin = trim($_POST['jeniskelamin']); // Ambil dari select
+  $jenis_kelamin = trim($_POST['jeniskelamin']);
   $no_telp = trim($_POST['notelp']);
   $username = trim($_POST['username']);
-  $password = $_POST['pass']; // Password diambil langsung
+  $password = $_POST['pass'];
   $repassword = $_POST['repass'];
-  $id_anggota_post = $_POST['id_anggota'] ?? ''; // Untuk mode edit (dari hidden input)
+  $id_anggota_post = $_POST['id_anggota'] ?? '';
 
-  // Validasi Sederhana
   if (empty($nama_lengkap) || empty($umur) || empty($jenis_kelamin) || empty($no_telp) || empty($username)) {
     $action_message = "<p style='color: red;'>Semua field harus diisi (kecuali password jika tidak diubah pada mode edit).</p>";
   } elseif (!empty($password) && $password !== $repassword) {
     $action_message = "<p style='color: red;'>Password dan Konfirmasi Password tidak cocok.</p>";
-  } elseif (!$is_edit_mode && empty($password)) { // Password wajib diisi untuk tambah baru
+  } elseif (!$is_edit_mode && empty($password)) {
     $action_message = "<p style='color: red;'>Password harus diisi untuk anggota baru.</p>";
   } else {
-    // --- PERHATIAN: PASSWORD TIDAK DI-HASH. INI SANGAT TIDAK AMAN! ---
-    $final_password = $password; // Menggunakan password plain text
-    // --- AKHIR PERHATIAN ---
+    $final_password = $password;
 
     if ($is_edit_mode) {
-      // Mode EDIT
       $sql_update = "UPDATE anggota SET nama_anggota = ?, umur_anggota = ?, jenis_kelamin_anggota = ?, no_hp_anggota = ?, usn_anggota = ?";
       $bind_types = "sisss";
       $bind_params = [$nama_lengkap, $umur, $jenis_kelamin, $no_telp, $username];
 
-      if (!empty($password)) { // Jika password diisi/diubah, update juga password
+      if (!empty($password)) {
         $sql_update .= ", pass_anggota = ?";
         $bind_types .= "s";
-        $bind_params[] = $final_password; // Menggunakan password plain text
+        $bind_params[] = $final_password;
       }
       $sql_update .= " WHERE id_anggota = ?";
       $bind_types .= "i";
@@ -104,13 +92,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       if ($stmt_update === false) {
         $action_message = "<p style='color: red;'>Error preparing update statement: " . $conn->error . "</p>";
       } else {
-        // Menggunakan call_user_func_array untuk bind_param dengan array dinamis
-        array_unshift($bind_params, $bind_types); // Masukkan $bind_types sebagai elemen pertama
+        array_unshift($bind_params, $bind_types);
         call_user_func_array([$stmt_update, 'bind_param'], $bind_params);
 
         if ($stmt_update->execute()) {
           $action_message = "<p style='color: green;'>Data anggota berhasil diperbarui.</p>";
-          // Refresh data di form setelah update agar data terbaru ditampilkan
           $sql_fetch_anggota = "SELECT id_anggota, nama_anggota, umur_anggota, jenis_kelamin_anggota, no_hp_anggota, usn_anggota, pass_anggota FROM anggota WHERE id_anggota = ?";
           $stmt_fetch_anggota_after_update = $conn->prepare($sql_fetch_anggota);
           $stmt_fetch_anggota_after_update->bind_param("i", $id_anggota_post);
@@ -125,8 +111,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt_update->close();
       }
     } else {
-      // Mode TAMBAH BARU
-      // id_kt perlu diambil dari Ketua yang login. Ini mengasumsikan Ketua hanya punya 1 Karang Taruna.
       $id_ketua_logged_in = $_SESSION["id_ketua"];
       $sql_get_id_kt = "SELECT id_kt FROM ketua_karang_taruna WHERE id_ketua = ?";
       $stmt_get_id_kt = $conn->prepare($sql_get_id_kt);
@@ -153,7 +137,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
           $stmt_insert->bind_param("sissssi", $nama_lengkap, $umur, $jenis_kelamin, $no_telp, $username, $final_password, $id_kt_anggota_baru); // Menggunakan password plain text
           if ($stmt_insert->execute()) {
             $action_message = "<p style='color: green;'>Data anggota berhasil ditambahkan.</p>";
-            // Reset form setelah berhasil tambah
             $data_anggota = [
               'id_anggota' => '',
               'nama_anggota' => '',

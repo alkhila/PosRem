@@ -1,30 +1,25 @@
 <?php
-session_start(); // Mulai sesi
-date_default_timezone_set('Asia/Jakarta'); // Atur zona waktu PHP
+session_start();
+date_default_timezone_set('Asia/Jakarta');
 
-// Cek apakah pengguna sudah login
 if (!isset($_SESSION["id_ketua"])) {
-  header("Location: login.php"); // Alihkan ke halaman login jika belum login
+  header("Location: login.php");
   exit;
 }
 
-// Koneksi ke database
-$servername = "localhost"; // Sesuaikan jika host database Anda berbeda
-$username = "root";        // Ganti dengan username database Anda
-$password = "";            // Ganti dengan password database Anda
+$servername = "localhost";
+$username = "root";
+$password = "";
 $dbname = "posrem";
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 
-// Cek koneksi
 if ($conn->connect_error) {
   die("Koneksi gagal: " . $conn->connect_error);
 }
 
-// Ambil id_ketua dari sesi (ini adalah ID Ketua yang sedang login dan akan diedit datanya)
 $id_ketua_to_edit = $_SESSION["id_ketua"];
 
-// Inisialisasi variabel untuk menampung data Ketua yang akan diedit
 $ketua_data = [
   'usn_ketua' => '',
   'nama_ketua' => '',
@@ -36,7 +31,6 @@ $ketua_data = [
 ];
 $action_message = "";
 
-// 1. Fetch data Ketua yang sudah ada (untuk mengisi form)
 $sql_fetch_ketua = "SELECT usn_ketua, nama_ketua, jenis_kelamin_ketua, umur_ketua, no_hp_ketua, tempat_tanggal_lahir, alamat_rumah FROM ketua_karang_taruna WHERE id_ketua = ?";
 $stmt_fetch_ketua = $conn->prepare($sql_fetch_ketua);
 if ($stmt_fetch_ketua === false) {
@@ -54,9 +48,7 @@ if ($result_fetch_ketua->num_rows > 0) {
 }
 $stmt_fetch_ketua->close();
 
-// 2. Logika untuk Pengiriman Form (POST request)
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-  // Ambil data yang diubah dari form
   $usn_ketua_new = trim($_POST['usn_ketua'] ?? '');
   $pass_ketua_new = $_POST['pass_ketua'] ?? '';
   $konf_pass_ketua_new = $_POST['konf_pass_ketua'] ?? '';
@@ -67,7 +59,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   $tempat_tanggal_lahir_new = trim($_POST['tempat_tanggal_lahir'] ?? '');
   $alamat_rumah_new = trim($_POST['alamat_rumah'] ?? '');
 
-  // Untuk mengisi ulang form jika ada error validasi
   $ketua_data['usn_ketua'] = $usn_ketua_new;
   $ketua_data['nama_ketua'] = $nama_ketua_new;
   $ketua_data['jenis_kelamin_ketua'] = $jenis_kelamin_ketua_new;
@@ -76,13 +67,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   $ketua_data['tempat_tanggal_lahir'] = $tempat_tanggal_lahir_new;
   $ketua_data['alamat_rumah'] = $alamat_rumah_new;
 
-  // Validasi dasar
   if (empty($usn_ketua_new) || empty($nama_ketua_new) || empty($jenis_kelamin_ketua_new) || empty($umur_ketua_new) || empty($no_hp_ketua_new)) {
     $action_message = "<p style='color: red;'>Field wajib (Username, Nama, Jenis Kelamin, Umur, No. HP) harus diisi.</p>";
   } elseif (!empty($pass_ketua_new) && $pass_ketua_new !== $konf_pass_ketua_new) {
     $action_message = "<p style='color: red;'>Password dan Konfirmasi Password tidak cocok.</p>";
   } else {
-    // Cek jika username diubah dan sudah ada yang lain
     $stmt_check_usn = $conn->prepare("SELECT id_ketua FROM ketua_karang_taruna WHERE usn_ketua = ? AND id_ketua != ?");
     $stmt_check_usn->bind_param("si", $usn_ketua_new, $id_ketua_to_edit);
     $stmt_check_usn->execute();
@@ -93,14 +82,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt_check_usn->close();
 
 
-    // Jika tidak ada error validasi atau username, lanjutkan update
     if (empty($action_message)) {
-      // Bagian ini akan membangun query UPDATE dan parameter secara dinamis
       $sql_set_parts = [];
       $bind_params_final = [];
       $bind_types_final_string = '';
 
-      // 1. Tambahkan field-field yang selalu di-update (selain password)
       $sql_set_parts[] = "usn_ketua=?";
       $bind_params_final[] = $usn_ketua_new;
       $bind_types_final_string .= "s";
@@ -123,7 +109,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       $bind_params_final[] = $alamat_rumah_new;
       $bind_types_final_string .= "s";
 
-      // 2. Jika password diisi, hash dan tambahkan ke query update
       if (!empty($pass_ketua_new)) {
         $hashed_password = password_hash($pass_ketua_new, PASSWORD_DEFAULT);
         $sql_set_parts[] = "pass_ketua=?";
@@ -131,19 +116,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $bind_types_final_string .= "s";
       }
 
-      // Gabungkan bagian SET menjadi satu string
       $sql_update_query_base = "UPDATE ketua_karang_taruna SET " . implode(', ', $sql_set_parts);
 
-      // 3. Tambahkan kondisi WHERE
       $sql_update_query = $sql_update_query_base . " WHERE id_ketua=?";
       $bind_params_final[] = $id_ketua_to_edit;
-      $bind_types_final_string .= "i"; // Tipe untuk id_ketua
+      $bind_types_final_string .= "i";
 
       $stmt_update = $conn->prepare($sql_update_query);
       if ($stmt_update === false) {
         $action_message = "<p style='color: red;'>Error menyiapkan update statement: " . $conn->error . "</p>";
       } else {
-        // PERBAIKAN: Menggunakan splat operator (...) untuk bind_param
         $stmt_update->bind_param($bind_types_final_string, ...$bind_params_final);
 
         if ($stmt_update->execute()) {
@@ -158,7 +140,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
   }
 }
-$conn->close(); // Tutup koneksi database
+$conn->close();
 ?>
 
 <!DOCTYPE html>

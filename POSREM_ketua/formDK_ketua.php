@@ -1,30 +1,25 @@
 <?php
-session_start(); // Mulai sesi
+session_start();
 date_default_timezone_set('Asia/Jakarta');
 
-// Cek apakah pengguna sudah login
 if (!isset($_SESSION["id_ketua"])) {
-    header("Location: login.php"); // Alihkan ke halaman login jika belum login
+    header("Location: login.php");
     exit;
 }
 
-// Koneksi ke database
-$servername = "localhost"; // Sesuaikan jika host database Anda berbeda
-$username = "root";        // Ganti dengan username database Anda
-$password = "";            // Ganti dengan password database Anda
+$servername = "localhost";
+$username = "root";
+$password = "";
 $dbname = "posrem";
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 
-// Cek koneksi
 if ($conn->connect_error) {
     die("Koneksi gagal: " . $conn->connect_error);
 }
 
-// Ambil id_ketua dari sesi
 $id_ketua_logged_in = $_SESSION["id_ketua"];
 
-// Fetch data Ketua yang sedang login
 $nama_ketua_form = "N/A";
 $jenis_kelamin_ketua_form = "N/A";
 $umur_ketua_form = "N/A";
@@ -55,7 +50,6 @@ $stmt_ketua_info->close();
 
 $action_message = "";
 
-// Logika Menyimpan Data Kesehatan (POST request)
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $tinggi_badan = $_POST['tinggi_badan'] ?? '';
     $berat_badan = $_POST['berat_badan'] ?? '';
@@ -106,7 +100,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 
-// Fetch daftar Petugas Puskesmas (untuk dropdown)
 $daftar_petugas = [];
 $sql_petugas_list = "SELECT id_petugas, nama_petugas FROM petugas_puskesmas ORDER BY nama_petugas ASC";
 $result_petugas_list = $conn->query($sql_petugas_list);
@@ -118,7 +111,6 @@ if ($result_petugas_list) {
     error_log("Error fetching petugas list: " . $conn->error);
 }
 
-// Untuk mempertahankan pilihan petugas di dropdown jika ada error validasi
 $selected_petugas_id_prev = isset($_POST['id_petugas']) ? $_POST['id_petugas'] : '';
 
 
@@ -346,7 +338,6 @@ $conn->close();
             color: #000;
         }
 
-        /* PERBAIKAN: CSS untuk button row */
         .button-row-form {
             display: flex;
             justify-content: space-between;

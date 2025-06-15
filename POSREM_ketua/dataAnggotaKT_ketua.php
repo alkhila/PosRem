@@ -1,30 +1,25 @@
 <?php
-session_start(); // Mulai sesi
+session_start();
 
-// Cek apakah pengguna sudah login
 if (!isset($_SESSION["id_ketua"])) {
-  header("Location: login.php"); // Alihkan ke halaman login jika belum login
+  header("Location: login.php");
   exit;
 }
 
-// Koneksi ke database
-$servername = "localhost"; // Sesuaikan jika host database Anda berbeda
-$username = "root";        // Ganti dengan username database Anda
-$password = "";            // Ganti dengan password database Anda
+$servername = "localhost";
+$username = "root";
+$password = "";
 $dbname = "posrem";
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 
-// Cek koneksi
 if ($conn->connect_error) {
   die("Koneksi gagal: " . $conn->connect_error);
 }
 
-// Ambil id_ketua dari sesi
 $id_ketua_logged_in = $_SESSION["id_ketua"];
 
-// Fetch nama ketua untuk ditampilkan di sidebar (opsional, tapi baik untuk konsistensi UI)
-$nama_ketua_sidebar = "Ketua"; // Default
+$nama_ketua_sidebar = "Ketua";
 $sql_nama_ketua = "SELECT nama_ketua FROM ketua_karang_taruna WHERE id_ketua = ?";
 $stmt_nama_ketua = $conn->prepare($sql_nama_ketua);
 if ($stmt_nama_ketua === false) {
@@ -40,12 +35,10 @@ if ($result_nama_ketua->num_rows > 0) {
 $stmt_nama_ketua->close();
 
 
-// --- LOGIKA HAPUS DATA ANGGOTA ---
 if (isset($_GET['delete_id']) && is_numeric($_GET['delete_id'])) {
   $delete_id_anggota = $_GET['delete_id'];
   $delete_message = "";
 
-  // Ambil id_kt yang dikelola oleh ketua yang login saat ini
   $sql_get_id_kt_ketua = "SELECT id_kt FROM ketua_karang_taruna WHERE id_ketua = ?";
   $stmt_get_id_kt_ketua = $conn->prepare($sql_get_id_kt_ketua);
   $stmt_get_id_kt_ketua->bind_param("i", $id_ketua_logged_in);
@@ -60,7 +53,6 @@ if (isset($_GET['delete_id']) && is_numeric($_GET['delete_id'])) {
   if ($id_kt_of_logged_in_ketua === null) {
     $delete_message = "<script>alert('Error: Ketua tidak terhubung ke Karang Taruna.');</script>";
   } else {
-    // Cek apakah anggota yang akan dihapus benar-benar berada di Karang Taruna yang dikelola oleh Ketua ini
     $sql_check_anggota_ownership = "SELECT id_anggota FROM anggota WHERE id_anggota = ? AND id_kt = ?";
     $stmt_check_anggota_ownership = $conn->prepare($sql_check_anggota_ownership);
     $stmt_check_anggota_ownership->bind_param("ii", $delete_id_anggota, $id_kt_of_logged_in_ketua);
@@ -68,32 +60,17 @@ if (isset($_GET['delete_id']) && is_numeric($_GET['delete_id'])) {
     $result_check_anggota_ownership = $stmt_check_anggota_ownership->get_result();
 
     if ($result_check_anggota_ownership->num_rows > 0) {
-      // Hapus data yang terkait di tabel 'pesan_kesehatan' jika ada foreign key dari 'pesan_kesehatan' ke 'pemeriksaan'
-      // Dan 'pemeriksaan' ke 'anggota'
-      // Ini akan membutuhkan query DELETE tambahan jika Anda tidak menggunakan ON DELETE CASCADE
-      // Cek urutan DELETE sesuai ketergantungan foreign key Anda
-      // Misalnya:
-      // $sql_delete_pesan_kesehatan = "DELETE FROM pesan_kesehatan WHERE id_pemeriksaan IN (SELECT id_pemeriksaan FROM pemeriksaan WHERE id_anggota = ?)";
-      // $stmt_delete_pesan_kesehatan = $conn->prepare($sql_delete_pesan_kesehatan);
-      // $stmt_delete_pesan_kesehatan->bind_param("i", $delete_id_anggota);
-      // $stmt_delete_pesan_kesehatan->execute();
-      // $stmt_delete_pesan_kesehatan->close();
-
-      // Hapus pemeriksaan kesehatan yang terkait dengan anggota ini
       $sql_delete_pemeriksaan = "DELETE FROM pemeriksaan WHERE id_anggota = ?";
       $stmt_delete_pemeriksaan = $conn->prepare($sql_delete_pemeriksaan);
       $stmt_delete_pemeriksaan->bind_param("i", $delete_id_anggota);
       $stmt_delete_pemeriksaan->execute();
       $stmt_delete_pemeriksaan->close();
 
-      // Kemudian, hapus anggota
       $sql_delete_anggota = "DELETE FROM anggota WHERE id_anggota = ?";
       $stmt_delete_anggota = $conn->prepare($sql_delete_anggota);
       $stmt_delete_anggota->bind_param("i", $delete_id_anggota);
 
       if ($stmt_delete_anggota->execute()) {
-        // REDIRECT YANG BENAR SETELAH HAPUS SUKSES
-        // Mengarahkan kembali ke file ini sendiri: dataAnggotaKT_ketua.php
         $delete_message = "<script>alert('Anggota berhasil dihapus!'); window.location.href='dataAnggotaKT_ketua.php';</script>";
       } else {
         $delete_message = "<script>alert('Gagal menghapus anggota: " . $stmt_delete_anggota->error . "');</script>";
@@ -104,13 +81,10 @@ if (isset($_GET['delete_id']) && is_numeric($_GET['delete_id'])) {
     }
     $stmt_check_anggota_ownership->close();
   }
-  echo $delete_message; // Tampilkan alert dan/atau redirect
-  exit; // Pastikan ini ada untuk menghentikan eksekusi script setelah redirect
+  echo $delete_message;
+  exit;
 }
-// --- AKHIR LOGIKA HAPUS ---
 
-
-// Query untuk mengambil data anggota berdasarkan id_kt dari ketua yang login
 $sql_anggota = "
     SELECT
         a.id_anggota,
@@ -507,6 +481,5 @@ $result_anggota = $stmt_anggota->get_result();
 
 </html>
 <?php
-// Tutup koneksi database setelah semua data diambil dan ditampilkan
 $conn->close();
 ?>

@@ -1,13 +1,11 @@
 <?php
-// register_ketua.php
-require_once 'config.php'; // Pastikan file config.php berisi koneksi database Anda
+require_once 'config.php';
 
 $selected_kt_id = null;
 $selected_kt_name = '';
 $message = '';
 $message_type = '';
 
-// Inisialisasi variabel input untuk mempertahankan nilai form jika ada error
 $usn_ketua_val = '';
 $nama_ketua_val = '';
 $jenis_kelamin_ketua_val = '';
@@ -17,7 +15,6 @@ $tempat_tanggal_lahir_val = '';
 $alamat_rumah_val = '';
 $agreement_val = false;
 
-// Ambil ID Karang Taruna dari GET parameter atau POST
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id_kt'])) {
     $selected_kt_id = (int) $_GET['id_kt'];
 } elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id_kt'])) {
@@ -46,9 +43,7 @@ if ($selected_kt_id) {
     $message_type = 'error';
 }
 
-// Handle form submission untuk Ketua Karang Taruna
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'register_ketua') {
-    // Ambil data dari POST
     $usn_ketua = trim($_POST['usn_ketua'] ?? '');
     $pass_ketua = $_POST['pass_ketua'] ?? '';
     $konf_pass_ketua = $_POST['konf_pass_ketua'] ?? '';
@@ -60,7 +55,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $alamat_rumah = trim($_POST['alamat_rumah'] ?? '');
     $agreement = isset($_POST['agreement']);
 
-    // Isi ulang nilai variabel untuk form jika ada error
     $usn_ketua_val = $usn_ketua;
     $nama_ketua_val = $nama_ketua;
     $jenis_kelamin_ketua_val = $jenis_kelamin_ketua;
@@ -74,7 +68,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $message = 'ID Karang Taruna tidak ditemukan. Silakan ulangi proses pendaftaran.';
         $message_type = 'error';
     } else {
-        // Validasi SEMUA field wajib
         if (empty($usn_ketua) || empty($pass_ketua) || empty($konf_pass_ketua) || empty($nama_ketua) || empty($jenis_kelamin_ketua) || empty($umur_ketua) || empty($no_hp_ketua)) {
             $message = 'Semua field wajib diisi (kecuali Tempat, Tanggal Lahir dan Alamat Rumah).';
             $message_type = 'error';
@@ -85,7 +78,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $message = 'Anda harus menyetujui pernyataan untuk melanjutkan.';
             $message_type = 'error';
         } else {
-            // Cek apakah username sudah ada
             $stmt_check_usn = $conn->prepare("SELECT id_ketua FROM ketua_karang_taruna WHERE usn_ketua = ?");
             $stmt_check_usn->bind_param("s", $usn_ketua);
             $stmt_check_usn->execute();
@@ -98,13 +90,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 $pass_ketua_to_save = password_hash($pass_ketua, PASSWORD_DEFAULT);
 
                 $stmt_insert = $conn->prepare("INSERT INTO ketua_karang_taruna (id_kt, usn_ketua, pass_ketua, nama_ketua, jenis_kelamin_ketua, umur_ketua, no_hp_ketua, tempat_tanggal_lahir, alamat_rumah) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                // PERBAIKAN: Mengubah string tipe data menjadi "issssisss"
                 $stmt_insert->bind_param("issssisss", $selected_kt_id, $usn_ketua, $pass_ketua_to_save, $nama_ketua, $jenis_kelamin_ketua, $umur_ketua, $no_hp_ketua, $tempat_tanggal_lahir, $alamat_rumah);
 
                 if ($stmt_insert->execute()) {
                     $message = 'Pendaftaran Ketua Karang Taruna berhasil!';
                     $message_type = 'success';
-                    // Kosongkan form setelah sukses
                     $usn_ketua_val = $pass_ketua = $konf_pass_ketua = $nama_ketua_val = $no_hp_ketua_val = '';
                     $jenis_kelamin_ketua_val = '';
                     $umur_ketua_val = '';

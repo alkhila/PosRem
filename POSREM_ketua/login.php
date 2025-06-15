@@ -1,5 +1,4 @@
 <?php
-// Koneksi ke database
 $host = "localhost";
 $user = "root";
 $pass = "";
@@ -7,7 +6,6 @@ $db = "posrem";
 
 $conn = new mysqli($host, $user, $pass, $db);
 
-// Cek koneksi
 if ($conn->connect_error) {
   die("Koneksi gagal: " . $conn->connect_error);
 }
@@ -19,7 +17,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   $username = trim($_POST["username"]);
   $password = $_POST["password"];
 
-  // Ambil data dari tabel ketua_karang_taruna
   $stmt = $conn->prepare("SELECT * FROM ketua_karang_taruna WHERE usn_ketua = ?");
   $stmt->bind_param("s", $username);
   $stmt->execute();
@@ -29,7 +26,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $user = $result->fetch_assoc();
 
     if (password_verify($password, $user['pass_ketua'])) {
-      // Login sukses
       $_SESSION["username"] = $user["usn_ketua"];
       $_SESSION["id_ketua"] = $user["id_ketua"];
       echo "<script>alert('Login berhasil'); window.location.href='dashboard_ketua.php';</script>";
