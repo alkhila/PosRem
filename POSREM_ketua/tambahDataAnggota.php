@@ -92,11 +92,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       if ($stmt_update === false) {
         $action_message = "<p style='color: red;'>Error preparing update statement: " . $conn->error . "</p>";
       } else {
-        array_unshift($bind_params, $bind_types);
-        call_user_func_array([$stmt_update, 'bind_param'], $bind_params);
+        // Perbaikan: Buat array referensi secara eksplisit
+        $bind_refs = [];
+        $bind_refs[] = $bind_types; // Argumen pertama adalah string tipe data
+
+        foreach ($bind_params as &$param) { // Gunakan '&' untuk mendapatkan referensi ke setiap elemen
+          $bind_refs[] = &$param;
+        }
+
+        call_user_func_array([$stmt_update, 'bind_param'], $bind_refs);
+
 
         if ($stmt_update->execute()) {
           $action_message = "<p style='color: green;'>Data anggota berhasil diperbarui.</p>";
+          // Re-fetch data to update form fields with latest data
           $sql_fetch_anggota = "SELECT id_anggota, nama_anggota, umur_anggota, jenis_kelamin_anggota, no_hp_anggota, usn_anggota, pass_anggota FROM anggota WHERE id_anggota = ?";
           $stmt_fetch_anggota_after_update = $conn->prepare($sql_fetch_anggota);
           $stmt_fetch_anggota_after_update->bind_param("i", $id_anggota_post);
@@ -122,7 +131,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       $result_get_id_kt = $stmt_get_id_kt->get_result();
       $id_kt_anggota_baru = null;
       if ($result_get_id_kt->num_rows > 0) {
-        $id_kt_anggota_baru = $result_get_id_kt->fetch_assoc()['id_kt'];
+        // Perbaikan: Ambil hasil fetch_assoc ke dalam variabel sementara
+        // sebelum mengakses elemennya, untuk memastikan passing by reference.
+        $row_temp = $result_get_id_kt->fetch_assoc();
+        if ($row_temp) {
+          $id_kt_anggota_baru = $row_temp['id_kt'];
+        }
       }
       $stmt_get_id_kt->close();
 
@@ -134,9 +148,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($stmt_insert === false) {
           $action_message = "<p style='color: red;'>Error preparing insert statement: " . $conn->error . "</p>";
         } else {
-          $stmt_insert->bind_param("sissssi", $nama_lengkap, $umur, $jenis_kelamin, $no_telp, $username, $final_password, $id_kt_anggota_baru); // Menggunakan password plain text
+          // Perbaikan: Buat variabel eksplisit untuk setiap parameter bind_param
+          // Ini memastikan semua argumen dilewatkan dengan referensi.
+          $p_nama_lengkap = $nama_lengkap;
+          $p_umur = $umur;
+          $p_jenis_kelamin = $jenis_kelamin;
+          $p_no_telp = $no_telp;
+          $p_username = $username;
+          $p_final_password = $final_password;
+          $p_id_kt_anggota_baru = $id_kt_anggota_baru;
+
+          $stmt_insert->bind_param("sissssi", $p_nama_lengkap, $p_umur, $p_jenis_kelamin, $p_no_telp, $p_username, $p_final_password, $p_id_kt_anggota_baru);
           if ($stmt_insert->execute()) {
             $action_message = "<p style='color: green;'>Data anggota berhasil ditambahkan.</p>";
+            // Reset form fields after successful insertion
             $data_anggota = [
               'id_anggota' => '',
               'nama_anggota' => '',
