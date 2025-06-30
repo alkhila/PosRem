@@ -1,18 +1,16 @@
 <?php
-// Koneksi ke database
-$host = "localhost";
-$user = "root";
-$pass = "";
-$db = "posrem2";
+$host = "sql303.infinityfree.com";
+$user = "if0_39241783";
+$pass = "4WgW6ZbgMpbG";
+$db = "if0_39241783_posrem";
 
 $conn = new mysqli($host, $user, $pass, $db);
 
-// Cek koneksi
 if ($conn->connect_error) {
     die("Koneksi gagal: " . $conn->connect_error);
 }
 
-session_start(); // <<< Ensure this is the very first line of output
+session_start(); 
 
 $loginError = "";
 
@@ -22,7 +20,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $loggedIn = false;
     $role = "";
-    $userId = null; // Variabel baru untuk menyimpan ID pengguna
+    $userId = null; 
 
     // 1. Cek di tabel 'ketua_karang_taruna'
     $stmt = $conn->prepare("SELECT usn_ketua, pass_ketua, id_ketua FROM ketua_karang_taruna WHERE usn_ketua = ?");
@@ -32,10 +30,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if ($result->num_rows === 1) {
         $user = $result->fetch_assoc();
-        if ($password === $user['pass_ketua']) { // Perbandingan plaintext
+        if ($password === $user['pass_ketua']) { 
             $loggedIn = true;
             $role = "ketua";
-            $userId = $user['id_ketua']; // Simpan ID Ketua
+            $userId = $user['id_ketua']; 
         }
     }
     $stmt->close();
@@ -49,10 +47,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         if ($result->num_rows === 1) {
             $user = $result->fetch_assoc();
-            if ($password === $user['pass_petugas']) { // Perbandingan plaintext
+            if ($password === $user['pass_petugas']) { 
                 $loggedIn = true;
                 $role = "petugas_puskesmas";
-                $userId = $user['id_petugas']; // Simpan ID Petugas
+                $userId = $user['id_petugas']; 
             }
         }
         $stmt->close();
@@ -67,10 +65,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         if ($result->num_rows === 1) {
             $user = $result->fetch_assoc();
-            if ($password === $user['pass_anggota']) { // Perbandingan plaintext
+            if ($password === $user['pass_anggota']) { 
                 $loggedIn = true;
                 $role = "anggota";
-                $userId = $user['id_anggota']; // Simpan ID Anggota
+                $userId = $user['id_anggota']; 
             }
         }
         $stmt->close();
@@ -80,24 +78,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($loggedIn) {
         $_SESSION["username"] = $username;
         $_SESSION["role"] = $role;
-        $_SESSION["user_id"] = $userId; // Simpan ID pengguna di sesi
+        $_SESSION["user_id"] = $userId; 
 
-        // Using PHP header() for redirection
-        // You can use JavaScript alert AFTER the redirect is complete, or remove it entirely
-        // for a smoother user experience.
         switch ($role) {
             case 'ketua':
                 header("Location: dashboard_ketua.php");
                 break;
             case 'petugas_puskesmas':
-                header("Location: dashboard_petugas.php");
+                header("Location: petugas/dashboard_petugas.php");
                 break;
             case 'anggota':
             default:
-                header("Location: dashboard.php");
+                header("Location: anggota/dashboard.php");
                 break;
         }
-        exit; // Crucial: Stop script execution after redirect
+        exit; 
     } else {
         $loginError = "Username atau Password salah.";
     }
@@ -114,7 +109,6 @@ $conn->close();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <style>
-        /* CSS tetap sama */
         body {
             margin: 0;
             font-family: 'Segoe UI', sans-serif;
@@ -237,7 +231,6 @@ $conn->close();
     <div class="container">
         <div class="form-section">
             <h1>
-                <img src="asset/logo_posrem.png">
                 PosRem
             </h1>
             <br><br>
@@ -254,14 +247,11 @@ $conn->close();
                     <input type="password" id="password" name="password" placeholder="rubyexample123" required>
                 </div>
                 <br><br>
-                <div class="form-footer">
-                    Belum punya akun? <a href="registrasi.php">Daftar</a>
-                </div>
                 <button class="btn" type="submit">Log In</button>
             </form>
         </div>
         <div class="image-section">
-            <img src="asset/logo_gradasi.png">
+            <img src="Logo.png" alt="">
         </div>
     </div>
 </body>
